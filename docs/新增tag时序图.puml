@@ -1,0 +1,18 @@
+@startuml
+'https://plantuml.com/sequence-diagram
+
+autonumber
+
+actor applicant as applicant
+actor admin as admin
+participant backend as backend
+entity "tag smart contract" as contract
+participant "the graph" as graph
+
+applicant --> backend: 申请一个新的tag,并将请求保存在数据库中
+admin --> backend: 发现有一个新的tag申请
+admin --> backend: 同意mint一个新的tag
+backend --> contract: 在tag合约中mint一个新的nft
+contract --> graph: 监听mint的event并保存数据
+
+@enduml

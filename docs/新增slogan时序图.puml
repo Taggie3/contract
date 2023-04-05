@@ -1,0 +1,23 @@
+@startuml
+'https://plantuml.com/sequence-diagram
+
+autonumber
+
+actor applicant as applicant
+actor admin as admin
+participant backend as backend
+entity "tag smart contract" as tagContract
+entity "factory smart contract" as factoryContract
+entity "slogan smart contract" as sloganContract
+participant "the graph" as graph
+
+applicant --> backend: 申请一个新的slogan,并将请求保存在数据库中
+admin --> backend: 发现有一个新的slogan申请
+admin --> backend: 同意生成一个新的slogan
+backend --> factoryContract: 调用createNewSlogan()尝试生成新的slogan合约
+factoryContract --> tagContract: 检查tag数据是否有误
+factoryContract --> sloganContract: 部署一个新的slogan合约
+factoryContract --> graph: 监听新slogan合约建立的event并记录
+
+
+@enduml

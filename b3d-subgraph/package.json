@@ -1,0 +1,23 @@
+{
+  "name": "exmaple-subgraph",
+  "author": "tdergouzi",
+  "description": "Ethereum example subgraph.",
+  "scripts": {
+    "compile": "hardhat compile",
+    "codegen": "graph codegen subgraph.yaml",
+    "auth": "graph auth --product hosted-service 693f74a40fd684b03afad5162ae52130",
+    "deploy-host": "graph deploy --product hosted-service lutianzhou001/brand3dao"
+  },
+  "dependencies": {
+    "@graphprotocol/graph-cli": "^0.33.0",
+    "@graphprotocol/graph-ts": "0.27.0",
+    "@nomiclabs/buidler-waffle": "^2.1.0",
+    "babel-polyfill": "^6.26.0",
+    "babel-register": "^6.26.0",
+    "ethereum-waffle": "^3.1.0",
+    "inquirer": "^9.1.4",
+    "truffle": "^5.0.4",
+    "truffle-flattener": "^1.4.4",
+    "truffle-hdwallet-provider": "^1.0.4"
+  }
+}

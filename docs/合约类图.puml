@@ -1,0 +1,96 @@
+@startuml
+'https://plantuml.com/class-diagram
+
+class ERC721{}
+class PaymentSplitter{}
+abstract class ERC721Enumerable{}
+abstract class Pausable{}
+abstract class Ownable{}
+abstract class ERC721Burnable{}
+abstract class ERC721Royalty{}
+class Brand3Factory{
+    + Brand3Tag brand3Tag
+    + Brand3Slogan[] SloganArray
+
+    void constructor(address brand3TagAddress)
+    + void createNewSlogan(uint256 _nonce,string _signature,string _baseURI,string _name,string _symbol,string _logoUrl,uint256[] tagIds)
+    + Brand3Slogan[] getBrand3Slogan()
+}
+note left of Brand3Factory::"createNewSlogan"
+    创建新的slogan合约
+end note
+note left of Brand3Factory::"getBrand3Slogan"
+    获取当前所有的slogan合约
+end note
+
+class Brand3Slogan extends ERC721,ERC721Enumerable,Pausable,Ownable,ERC721Burnable,ERC721Royalty{
+    + string _baseTokenURI
+    + string logoUrl
+    + uint256[] tagIds
+
+    void constructor(string baseURI,string _name,string _symbol,string _logoUrl,uint256[] _tagIds)
+    + void updateLogo(string _logoUrl)
+    + void mint(address creator, address splitter)
+    + uint256[] getTagIds()
+
+}
+
+note left of Brand3Slogan::"mint"
+    在slogan中mint一个新的nft
+    creator: nft所有者的地址
+    splitter: 一个分账合约的地址，版税的所得金额将会打到此合约，再通过这个合约进行分账
+end note
+note left of Brand3Slogan::"getTagIds"
+    获取当前slogan对应的tag的nft的tokenId
+end note
+
+class Brand3Tag extends ERC721,ERC721Enumerable,Pausable,Ownable,ERC721Burnable{
+    +   mapping(uint256 => Tag) tokenIdToTag
+    +   mapping(string => Tag) tagValueToTag
+    +   mapping(string => bool) tagValueToExist
+    +   mapping(address => bool) addressToMint
+
+    +   void constructor()
+    +   void mint(string tagValue, uint16 sortLevel)
+    +   string makeSlogan(uint256[] tokenIds, string[] linkStrs)
+    +   void  addMintAddress(address addr)
+    +   void  delMintAddress(address addr)
+}
+note right of Brand3Tag::"tokenIdToTag"
+    tokenId对应的tag
+end note
+note right of Brand3Tag::"tagValueToTag"
+    tagValue对应的tag
+end note
+note right of Brand3Tag::"tagValueToExist"
+    tagValue是否已存在
+end note
+note right of Brand3Tag::"addressToMint"
+    记录所有已被授权可以mint的地址
+end note
+note right of Brand3Tag::"mint"
+    在Tag中mint一个新的nft
+    tagValue: tag的内容
+    sortLevel: tag的排序级别
+end note
+note right of Brand3Tag::"makeSlogan"
+    将tag和连接字符串拼接成为一个新的slogan字符串
+end note
+
+
+struct Tag{
+    uint256 tokenId
+    uint16 sortLevel
+    string value
+}
+
+class RoyaltySplitter extends PaymentSplitter{}
+
+Brand3Tag --> Brand3Factory::brand3Tag
+Brand3Slogan --> Brand3Factory::SloganArray
+RoyaltySplitter --> Brand3Slogan::mint
+Tag --> Brand3Tag::tokenIdToTag
+Tag --> Brand3Tag::tagValueToTag
+Brand3Factory::createNewSlogan -[dashed]-> Brand3Slogan
+
+@enduml

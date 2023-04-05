@@ -1,0 +1,13 @@
+type Brand3SloganDirectory @entity {
+    id: ID!
+    sloganAddress: String!
+    owner: String!
+}
+
+type NFT@entity {
+    id: ID!
+    sloganAddress: String!
+    tokenId: String!
+    creator: String!
+    splitter: String!
+}

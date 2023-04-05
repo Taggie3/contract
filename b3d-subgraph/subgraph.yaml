@@ -1,0 +1,45 @@
+specVersion: 0.0.5
+description: Subgraph for b3d.
+repository: https://github.com/Meta-Defender/metadefender-subgraph/tree/vincent-dev-subgraph
+schema:
+  file: ./schema/schema_b3d.graphql
+dataSources:
+  - kind: ethereum/contract
+    name: Brand3Factory
+    network: mumbai
+    source:
+      address: '0xfbbfF40203F3d9D4d88AA81Bb60b85Fe14191131'
+      abi: Brand3Factory
+      startBlock: 32000000
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.6
+      language: wasm/assemblyscript
+      entities:
+        - SloganDirectory
+      abis:
+        - name: Brand3Factory
+          file: ../artifacts/contracts/Brand3Factory.sol/Brand3Factory.json
+      eventHandlers:
+        - event: NewBrand3SloganCreated(address,address)
+          handler: handleNewSlogan
+      file: ./handlers/handler.ts
+templates:
+  - name: Brand3Slogan
+    kind: ethereum/contract
+    network: mumbai
+    source:
+      abi: Brand3Slogan
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.6
+      language: wasm/assemblyscript
+      file: ./handlers/handler.ts
+      entities:
+        - NFT
+      abis:
+        - name: Brand3Slogan
+          file: ../artifacts/contracts/Brand3Slogan.sol/Brand3Slogan.json
+      eventHandlers:
+        - event: Minted(address,uint256,address,address)
+          handler: handleNFTMinted
