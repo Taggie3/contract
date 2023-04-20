@@ -1,4 +1,4 @@
-> goerli地址：0xD656EcDd53f1051e61F4841B2c99dC3df4CEE913
+> goerli地址：0x842532da40688bdcc2801b5173BC1a69adE0bD98
 
 # bytecode
 [WhitelistBytecode.json](WhitelistBytecode.json)

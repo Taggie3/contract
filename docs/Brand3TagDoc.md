@@ -1,4 +1,4 @@
-> goerli地址：0x7ff5dD81Da06275a8c4bfC498cDe7B9C71ddA5CB
+> goerli地址：0xaCDc3aF383ee41a1Fd900a1BF47AEB7dE1269cAF
 
 # bytecode
 [Brand3TagBytecode.json](Brand3TagBytecode.json)

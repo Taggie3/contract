@@ -9,6 +9,7 @@ graph以便进行查询。
 [the graph介绍](https://thegraph.com/en/)
 
 ## 链上部分架构介绍
+
 ![img_1.png](img_1.png)
 合约的整体架构如图所示  
 其中最核心的3个合约分别为
@@ -22,7 +23,17 @@ graph以便进行查询。
   > Slogan合约的工厂合约，通过此合约部署新增的Slogan合约。在此合约中会记录所有已部署的slogan合约。
 
 ## 如何新增Tag
+
 ![img.png](img.png)
+
 ## 如何新增Slogan
+
 ![img_2.png](img_2.png)
+
 ## 各合约的接口文档
+
+[Brand3Slogan](./docs/Brand3SloganDoc.md)  
+[Brand3Tag](./docs/Brand3TagDoc.md)  
+[RoyaltySplitter](./docs/RoyaltySplitterDoc.md)  
+[WihteList](./docs/WhiteListDoc.md)  
+

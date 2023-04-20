@@ -1,6 +1,6 @@
 {
 	"compiler": {
-		"version": "0.8.18+commit.87f61d96"
+		"version": "0.8.19+commit.7dd6d404"
 	},
 	"language": "Solidity",
 	"output": {
@@ -940,11 +940,11 @@
 			]
 		},
 		"contracts/interfaces/IBrand3Tag.sol": {
-			"keccak256": "0xec2de42db103495ea4117877a47274a14195707f245e4ff8aca19c6c2b0ab06c",
+			"keccak256": "0xf72c35e2c3d1732081eb4077fd82ba5068109cbdfaa5ef5de06c4b713820a7ca",
 			"license": "MIT",
 			"urls": [
-				"bzz-raw://51092b9e925b5501a1a4e8f7de32d0bc946e208676294763ba06713dae3b5b40",
-				"dweb:/ipfs/Qmav6ThNCeRF5sCpEJnpkqzTZR3jXK64RYSvCK2nSa8Ytc"
+				"bzz-raw://fe6526260f82f2555202381aaeee47f6415780bb1ffe40916f6b6ac6c5ad97e9",
+				"dweb:/ipfs/QmWWV7YhPdXmigQNfJxaRwhBnDZuRTQzKWph7Ss8ozJJEt"
 			]
 		}
 	},
