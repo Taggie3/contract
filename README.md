@@ -30,6 +30,10 @@ graph以便进行查询。
 
 ![img_2.png](img_2.png)
 
+## 如何在slogan中新增内容
+
+![img_3.png](img_3.png)
+
 ## 各合约的接口文档
 
 [Brand3Slogan](./docs/Brand3SloganDoc.md)  

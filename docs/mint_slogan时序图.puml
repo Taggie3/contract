@@ -1,0 +1,21 @@
+@startuml
+'https://plantuml.com/sequence-diagram
+
+autonumber
+
+actor follower as follower
+actor “slogan owner” as sloganOwner
+participant backend as backend
+entity "slogan smart contract" as sloganContract
+entity "royalty splitter smart contract" as royaltySplitterContract
+participant "the graph" as graph
+
+follower --> backend: 申请在slogan中mint一个新的nft
+sloganOwner --> backend: 发现有一个新的slogan的mint请求
+sloganOwner --> sloganOwner: 同意在slogan中mint
+sloganOwner --> royaltySplitterContract: 部署一个royaltySplitter合约以便版税分账
+sloganOwner --> sloganContract: 使用生成的royaltySplitter合约作为版税分账合约进行slogan中的nft的mint
+sloganContract --> graph: 监听slogan中mint的event并记录
+sloganOwner --> backend: 记录在slogan中有一个新的mint
+
+@enduml
