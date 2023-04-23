@@ -11,11 +11,11 @@ import "@openzeppelin/contracts/utils/Counters.sol";
 import "./interfaces/IBrand3Tag.sol";
 
 contract Brand3Tag is
-    ERC721,
-    ERC721Enumerable,
-    Pausable,
-    Ownable,
-    ERC721Burnable
+ERC721,
+ERC721Enumerable,
+Pausable,
+Ownable,
+ERC721Burnable
 {
     using Counters for Counters.Counter;
     Counters.Counter private _tokenIdCounter;
@@ -47,9 +47,9 @@ contract Brand3Tag is
     }
 
     function mint(string memory tagValue, uint16 sortLevel)
-        public
-        onlyMinter
-        whenNotPaused
+    public
+    onlyMinter
+    whenNotPaused
     {
         //校验tagString是否已经被mint过了
         require(!tagValueToExist[tagValue], "this tag existed");
@@ -67,20 +67,20 @@ contract Brand3Tag is
     }
 
     function makeSlogan(uint256[] memory tokenIds, string[] memory linkStrs)
-        public
-        view
-        whenNotPaused
-        returns (string memory)
+    public
+    view
+    whenNotPaused
+    returns (string memory)
     {
         string memory result;
         uint256 linkStrsLength = linkStrs.length;
         uint16 nowSortLevel = 0;
         for (uint256 i = 0; i < tokenIds.length; i++) {
             Tag memory tag = tokenIdToTag[tokenIds[i]];
-            //如果当前排序等级比tag的排序登记小，说明tokenIds给的顺序不对
+            //如果当前排序等级比tag的排序等级小，说明tokenIds给的顺序不对
             require(
                 tag.sortLevel >= nowSortLevel,
-                "tag's sortLevel is bigger than nowArea.That means the TokenIds's sort is wrong or you give a wrong tokenId"
+                "tag's sortLevel is smaller than nowArea.That means the TokenIds's sort is wrong or you give a wrong tokenId"
             );
             //tag排序等于当前排序，则添加tag内容到字符串中
             if (nowSortLevel == tag.sortLevel) {
@@ -130,7 +130,7 @@ contract Brand3Tag is
     function withdraw() public onlyOwner {
         address _owner = owner();
         uint256 amount = address(this).balance;
-        (bool sent, ) = _owner.call{value: amount}("");
+        (bool sent,) = _owner.call{value : amount}("");
         require(sent, "Failed to send Ether");
     }
 
@@ -158,10 +158,10 @@ contract Brand3Tag is
     }
 
     function supportsInterface(bytes4 interfaceId)
-        public
-        view
-        override(ERC721, ERC721Enumerable)
-        returns (bool)
+    public
+    view
+    override(ERC721, ERC721Enumerable)
+    returns (bool)
     {
         return super.supportsInterface(interfaceId);
     }
