@@ -11,3 +11,10 @@ type NFT@entity {
     creator: String!
     splitter: String!
 }
+
+type Brand3Tag@entity {
+    id: ID!
+    tokenId: Int!
+    types:String!
+    value:String!
+}

@@ -22,6 +22,7 @@ contract Brand3Tag is
 
     struct Tag {
         uint256 tokenId;
+        string types;
         //tag的内容
         string value;
     }
@@ -32,14 +33,12 @@ contract Brand3Tag is
     mapping(string => Tag) public tagValueToTag;
     //tagValue是否已存在
     mapping(string => bool) public tagValueToExist;
-    //记录所有已被授权可以mint的地址
-    mapping(address => bool) public addressToMint;
 
-    constructor() ERC721("Brand3Tag", "B3T") {
-        addressToMint[msg.sender] = true;
-    }
+    mapping(string => Tag[]) public tagTypeToTags;
 
-    function mint(string memory tagValue)
+    constructor() ERC721("Brand3Tag", "B3T") {}
+
+    function mint(string memory tagValue, string memory tagTypes)
         public
         whenNotPaused
     {
@@ -51,13 +50,15 @@ contract Brand3Tag is
         uint256 tokenId = _tokenIdCounter.current();
         _tokenIdCounter.increment();
         //新建tag
-        Tag memory tag = Tag(tokenId, tagValue);
+        Tag memory tag = Tag(tokenId, tagTypes, tagValue);
         //将tokenId对应的tag保存
         tagValueToTag[tagValue] = tag;
         tokenIdToTag[tokenId] = tag;
+        tagTypeToTags[tagTypes].push(tag);
         _safeMint(msg.sender, tokenId);
-    }
 
+        emit NewTagEvent(tokenId, tagTypes, tagValue);
+    }
 
     /**
      * 从该合约中提取所有的eth到owner
@@ -100,4 +101,6 @@ contract Brand3Tag is
     {
         return super.supportsInterface(interfaceId);
     }
+
+    event NewTagEvent(uint256 tokenId, string types, string value);
 }

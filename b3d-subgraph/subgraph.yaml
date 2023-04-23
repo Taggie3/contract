@@ -1,14 +1,14 @@
 specVersion: 0.0.5
 description: Subgraph for b3d.
-repository: https://github.com/Meta-Defender/metadefender-subgraph/tree/vincent-dev-subgraph
+repository: https://github.com/Taggie3/contract
 schema:
   file: ./schema/schema_b3d.graphql
 dataSources:
   - kind: ethereum/contract
     name: Brand3Factory
-    network: mumbai
+    network: goerli
     source:
-      address: '0xfbbfF40203F3d9D4d88AA81Bb60b85Fe14191131'
+      address: '0x2139B784DDBcA935dA8BcF59970FF5c20fF0AF25'
       abi: Brand3Factory
       startBlock: 32000000
     mapping:
@@ -16,30 +16,50 @@ dataSources:
       apiVersion: 0.0.6
       language: wasm/assemblyscript
       entities:
-        - SloganDirectory
+        - Brand3SloganDirectory
       abis:
         - name: Brand3Factory
-          file: ../artifacts/contracts/Brand3Factory.sol/Brand3Factory.json
+          file: ../contracts/artifacts/Brand3Factory.json
       eventHandlers:
         - event: NewBrand3SloganCreated(address,address)
+          handler: handleNewSlogan
+      file: ./handlers/handler.ts
+  - kind: ethereum/contract
+    name: Brand3Tag
+    network: goerli
+    source:
+      address: '0x560e62f6D61FeF04D02aDcaFE1D86881D3052aE4'
+      abi: Brand3Tag
+      startBlock: 32000000
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.6
+      language: wasm/assemblyscript
+      entities:
+        - Brand3Tag
+      abis:
+        - name: Brand3Tag
+          file: ../contracts/artifacts/Brand3Tag.json
+      eventHandlers:
+        - event: NewTagEvent(uint256,string,string)
           handler: handleNewSlogan
       file: ./handlers/handler.ts
 templates:
   - name: Brand3Slogan
     kind: ethereum/contract
-    network: mumbai
+    network: goerli
     source:
       abi: Brand3Slogan
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.6
       language: wasm/assemblyscript
-      file: ./handlers/handler.ts
       entities:
         - NFT
       abis:
         - name: Brand3Slogan
-          file: ../artifacts/contracts/Brand3Slogan.sol/Brand3Slogan.json
+          file: ../contracts/artifacts/Brand3Slogan.json
       eventHandlers:
         - event: Minted(address,uint256,address,address)
           handler: handleNFTMinted
+      file: ./handlers/handler.ts

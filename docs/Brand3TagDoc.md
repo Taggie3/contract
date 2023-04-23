@@ -1,4 +1,4 @@
-> goerli地址：0x668d9590a3F7e1Ddf580B87fc8dea7B25c308D92
+> goerli地址：0x560e62f6D61FeF04D02aDcaFE1D86881D3052aE4
 
 # bytecode
 [Brand3TagBytecode.json](Brand3TagBytecode.json)
@@ -13,9 +13,10 @@
 
 ***参数***
 
-| 参数key     | 参数类型   | 参数解释     |
-|-----------|--------|----------|
-| tagValue  | string | tag的内容   |
+| 参数key     | 参数类型   | 参数解释   |
+|-----------|--------|--------|
+| tagValue  | string | tag的内容 |
+| tagTypes  | string | tag的类型 |
 
 ***响应***
 > 无

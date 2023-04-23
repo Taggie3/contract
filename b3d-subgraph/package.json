@@ -5,8 +5,8 @@
   "scripts": {
     "compile": "hardhat compile",
     "codegen": "graph codegen subgraph.yaml",
-    "auth": "graph auth --product hosted-service 693f74a40fd684b03afad5162ae52130",
-    "deploy-host": "graph deploy --product hosted-service lutianzhou001/brand3dao"
+    "auth": "graph auth --product hosted-service fbbfac0481dbab817a58e837038898f2",
+    "deploy-host": "graph deploy --product hosted-service lc1993929/b3d"
   },
   "dependencies": {
     "@graphprotocol/graph-cli": "^0.33.0",
