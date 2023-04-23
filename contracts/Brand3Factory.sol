@@ -29,7 +29,7 @@ contract Brand3Factory {
         uint256[] memory tagIds
     ) external {
         for (uint256 i = 0; i < tagIds.length; i++) {
-            (uint256 tokenId, , ) = brand3Tag.tokenIdToTag(tagIds[i]);
+            (uint256 tokenId, ) = brand3Tag.tokenIdToTag(tagIds[i]);
             require(tokenId == tagIds[i], "invalid tagId");
         }
         if (!checkValidSignature(_signature)) {

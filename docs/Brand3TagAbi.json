@@ -132,19 +132,6 @@
     "inputs": [
       {
         "internalType": "address",
-        "name": "addr",
-        "type": "address"
-      }
-    ],
-    "name": "addMintAddress",
-    "outputs": [],
-    "stateMutability": "nonpayable",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      {
-        "internalType": "address",
         "name": "",
         "type": "address"
       }
@@ -213,19 +200,6 @@
   {
     "inputs": [
       {
-        "internalType": "address",
-        "name": "addr",
-        "type": "address"
-      }
-    ],
-    "name": "delMintAddress",
-    "outputs": [],
-    "stateMutability": "nonpayable",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      {
         "internalType": "uint256",
         "name": "tokenId",
         "type": "uint256"
@@ -269,38 +243,9 @@
   {
     "inputs": [
       {
-        "internalType": "uint256[]",
-        "name": "tokenIds",
-        "type": "uint256[]"
-      },
-      {
-        "internalType": "string[]",
-        "name": "linkStrs",
-        "type": "string[]"
-      }
-    ],
-    "name": "makeSlogan",
-    "outputs": [
-      {
-        "internalType": "string",
-        "name": "",
-        "type": "string"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      {
         "internalType": "string",
         "name": "tagValue",
         "type": "string"
-      },
-      {
-        "internalType": "uint16",
-        "name": "sortLevel",
-        "type": "uint16"
       }
     ],
     "name": "mint",
@@ -516,11 +461,6 @@
         "type": "uint256"
       },
       {
-        "internalType": "uint16",
-        "name": "sortLevel",
-        "type": "uint16"
-      },
-      {
         "internalType": "string",
         "name": "value",
         "type": "string"
@@ -562,11 +502,6 @@
         "internalType": "uint256",
         "name": "tokenId",
         "type": "uint256"
-      },
-      {
-        "internalType": "uint16",
-        "name": "sortLevel",
-        "type": "uint16"
       },
       {
         "internalType": "string",
