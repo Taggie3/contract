@@ -43,10 +43,9 @@ contract Brand3Slogan is
         //记录与slogan相关的tag的数据
         tagIds = _tagIds;
         _baseTokenURI = baseURI;
-        _setDefaultRoyalty(_msgSender(), 250);
+        _setDefaultRoyalty(tx.origin, 250);
         logoUrl = _logoUrl;
         _transferOwnership(tx.origin);
-        mint(tx.origin, tx.origin);
     }
 
     function updateLogo(string memory _logoUrl) public onlyOwner whenNotPaused {

@@ -6,11 +6,11 @@ schema:
 dataSources:
   - kind: ethereum/contract
     name: Brand3Factory
-    network: goerli
+    network: mumbai
     source:
-      address: '0x2139B784DDBcA935dA8BcF59970FF5c20fF0AF25'
+      address: '0x88d84BD9027b0b0d125a3589C950cE2a93018E3B'
       abi: Brand3Factory
-      startBlock: 8879000
+      startBlock: 34777000
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.6
@@ -26,11 +26,11 @@ dataSources:
       file: ./handlers/handler.ts
   - kind: ethereum/contract
     name: Brand3Tag
-    network: goerli
+    network: mumbai
     source:
-      address: '0x560e62f6D61FeF04D02aDcaFE1D86881D3052aE4'
+      address: '0x3b3eA2486D058C188615b28d80677e63ca29CE7f'
       abi: Brand3Tag
-      startBlock: 8879000
+      startBlock: 34777000
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.6
@@ -47,7 +47,7 @@ dataSources:
 templates:
   - name: Brand3Slogan
     kind: ethereum/contract
-    network: goerli
+    network: mumbai
     source:
       abi: Brand3Slogan
     mapping:

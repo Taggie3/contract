@@ -1,10 +1,12 @@
-> goerli示例:0xa23FDABA53adD78F09ea724F5c177F7281b3d90A
+> goerli示例:0xDACF2788245BD029CDdAf14dc5084fde60F286b0
+> mumbai地址：0xf15d5A35432F6e4954555B5f2bDAf3751a05b095
 
 # bytecode
 
 [Brand3SloganBytecode.json](Brand3SloganBytecode.json)
 
 # abi
+
 [Brand3SloganAbi.json](Brand3SloganAbi.json)
 
 ---
