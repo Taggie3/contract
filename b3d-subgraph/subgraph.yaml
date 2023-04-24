@@ -10,7 +10,7 @@ dataSources:
     source:
       address: '0x2139B784DDBcA935dA8BcF59970FF5c20fF0AF25'
       abi: Brand3Factory
-      startBlock: 32000000
+      startBlock: 8879000
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.6
@@ -30,7 +30,7 @@ dataSources:
     source:
       address: '0x560e62f6D61FeF04D02aDcaFE1D86881D3052aE4'
       abi: Brand3Tag
-      startBlock: 32000000
+      startBlock: 8879000
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.6
@@ -42,7 +42,7 @@ dataSources:
           file: ../contracts/artifacts/Brand3Tag.json
       eventHandlers:
         - event: NewTagEvent(uint256,string,string)
-          handler: handleNewSlogan
+          handler: handleNewTagEvent
       file: ./handlers/handler.ts
 templates:
   - name: Brand3Slogan

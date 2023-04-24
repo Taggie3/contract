@@ -19,7 +19,7 @@ export function handleNewSlogan(event: NewBrand3SloganCreated): void {
     return;
 }
 
-export function handleNewTagEvent(event: NewTagEvent) {
+export function handleNewTagEvent(event: NewTagEvent): void {
     const bytes = ByteArray.fromUTF8(event.address.toHexString() + event.params.tokenId.toString());
     const str = crypto.keccak256(bytes).toHexString();
     let entity = Brand3Tag.load(str);

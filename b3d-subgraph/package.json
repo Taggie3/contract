@@ -3,10 +3,9 @@
   "author": "tdergouzi",
   "description": "Ethereum example subgraph.",
   "scripts": {
-    "compile": "hardhat compile",
-    "codegen": "graph codegen subgraph.yaml",
-    "auth": "graph auth --product hosted-service fbbfac0481dbab817a58e837038898f2",
-    "deploy-host": "graph deploy --product hosted-service lc1993929/b3d"
+    "codegen": "graph codegen && graph build",
+    "auth": "graph auth --product hosted-service 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",
+    "deploy-host": "graph deploy --product hosted-service lc1993929/brand3dao"
   },
   "dependencies": {
     "@graphprotocol/graph-cli": "^0.33.0",
