@@ -38,26 +38,26 @@ contract Brand3Tag is
 
     constructor() ERC721("Brand3Tag", "B3T") {}
 
-    function mint(string memory tagValue, string memory tagTypes)
+    function mint(string memory _tagTypes,string memory _tagValue )
         public
         whenNotPaused
     {
         //校验tagString是否已经被mint过了
-        require(!tagValueToExist[tagValue], "this tag existed");
+        require(!tagValueToExist[_tagValue], "this tag existed");
         //记录tagValue已存在
-        tagValueToExist[tagValue] = true;
+        tagValueToExist[_tagValue] = true;
         //更新tokenId
-        uint256 tokenId = _tokenIdCounter.current();
+        uint256 _tokenId = _tokenIdCounter.current();
         _tokenIdCounter.increment();
         //新建tag
-        Tag memory tag = Tag(tokenId, tagTypes, tagValue);
+        Tag memory tag = Tag(_tokenId, _tagTypes, _tagValue);
         //将tokenId对应的tag保存
-        tagValueToTag[tagValue] = tag;
-        tokenIdToTag[tokenId] = tag;
-        tagTypeToTags[tagTypes].push(tag);
-        _safeMint(msg.sender, tokenId);
+        tagValueToTag[_tagValue] = tag;
+        tokenIdToTag[_tokenId] = tag;
+        tagTypeToTags[_tagTypes].push(tag);
+        _safeMint(msg.sender, _tokenId);
 
-        emit NewTagEvent(tokenId, tagTypes, tagValue);
+        emit NewTagEvent(_tokenId, _tagTypes, _tagValue);
     }
 
     /**

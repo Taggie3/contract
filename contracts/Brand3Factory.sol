@@ -26,7 +26,8 @@ contract Brand3Factory {
         string memory _name,
         string memory _symbol,
         string memory _logoUrl,
-        uint256[] memory tagIds
+        uint256[] memory tagIds,
+        uint256 _brandId
     ) external {
         for (uint256 i = 0; i < tagIds.length; i++) {
             (uint256 tokenId, , ) = brand3Tag.tokenIdToTag(tagIds[i]);
@@ -50,7 +51,7 @@ contract Brand3Factory {
         SloganArray.push(brand3Slogan);
         nonce[msg.sender] += 1;
 
-        emit NewBrand3SloganCreated(address(brand3Slogan), msg.sender);
+        emit NewBrandEvent(_brandId,address(brand3Slogan), msg.sender);
     }
 
     function getBrand3Slogan() external view returns (Brand3Slogan[] memory) {
@@ -74,5 +75,5 @@ contract Brand3Factory {
     error ContractAlreadyInitialized();
 
     // events
-    event NewBrand3SloganCreated(address brand3SloganAddress, address owner);
+    event NewBrandEvent(uint256 brandId, address brandAddress, address owner);
 }

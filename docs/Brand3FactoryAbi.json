@@ -16,59 +16,6 @@
     "type": "error"
   },
   {
-    "inputs": [],
-    "name": "InvalidNonce",
-    "type": "error"
-  },
-  {
-    "inputs": [],
-    "name": "InvalidSignature",
-    "type": "error"
-  },
-  {
-    "inputs": [],
-    "name": "InvalidTag",
-    "type": "error"
-  },
-  {
-    "anonymous": false,
-    "inputs": [
-      {
-        "indexed": false,
-        "internalType": "address",
-        "name": "brand3SloganAddress",
-        "type": "address"
-      },
-      {
-        "indexed": false,
-        "internalType": "address",
-        "name": "owner",
-        "type": "address"
-      }
-    ],
-    "name": "NewBrand3SloganCreated",
-    "type": "event"
-  },
-  {
-    "inputs": [
-      {
-        "internalType": "uint256",
-        "name": "",
-        "type": "uint256"
-      }
-    ],
-    "name": "SloganArray",
-    "outputs": [
-      {
-        "internalType": "contract Brand3Slogan",
-        "name": "",
-        "type": "address"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
     "inputs": [
       {
         "internalType": "uint256",
@@ -104,12 +51,57 @@
         "internalType": "uint256[]",
         "name": "tagIds",
         "type": "uint256[]"
+      },
+      {
+        "internalType": "uint256",
+        "name": "_brandId",
+        "type": "uint256"
       }
     ],
     "name": "createNewSlogan",
     "outputs": [],
     "stateMutability": "nonpayable",
     "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "InvalidNonce",
+    "type": "error"
+  },
+  {
+    "inputs": [],
+    "name": "InvalidSignature",
+    "type": "error"
+  },
+  {
+    "inputs": [],
+    "name": "InvalidTag",
+    "type": "error"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": false,
+        "internalType": "uint256",
+        "name": "brandId",
+        "type": "uint256"
+      },
+      {
+        "indexed": false,
+        "internalType": "address",
+        "name": "brandAddress",
+        "type": "address"
+      },
+      {
+        "indexed": false,
+        "internalType": "address",
+        "name": "owner",
+        "type": "address"
+      }
+    ],
+    "name": "NewBrandEvent",
+    "type": "event"
   },
   {
     "inputs": [],
@@ -157,6 +149,25 @@
         "internalType": "uint256",
         "name": "",
         "type": "uint256"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "name": "SloganArray",
+    "outputs": [
+      {
+        "internalType": "contract Brand3Slogan",
+        "name": "",
+        "type": "address"
       }
     ],
     "stateMutability": "view",
