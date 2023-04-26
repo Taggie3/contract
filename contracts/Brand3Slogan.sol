@@ -13,12 +13,12 @@ import "@openzeppelin/contracts/token/ERC721/IERC721Receiver.sol";
 import "hardhat/console.sol";
 
 contract Brand3Slogan is
-    ERC721,
-    ERC721Enumerable,
-    Pausable,
-    Ownable,
-    ERC721Burnable,
-    ERC721Royalty
+ERC721,
+ERC721Enumerable,
+Pausable,
+Ownable,
+ERC721Burnable,
+ERC721Royalty
 {
     using Counters for Counters.Counter;
     Counters.Counter private _tokenIdCounter;
@@ -53,11 +53,12 @@ contract Brand3Slogan is
     }
 
     // mint数量不限制，只能由owner进行mint，在mint指定splitter地址为版税受益人
-    function mint(address creator, address splitter)
-        public
-        onlyOwner
-        whenNotPaused
+    function mint(uint256 postId, address creator, address splitter)
+    public
+    whenNotPaused
     {
+
+        //        TODO 验证签名
         require(creator != address(0), "creator is not a valid address");
         require(splitter != address(0), "splitter is not a valid address");
         //更新tokenId
@@ -66,7 +67,7 @@ contract Brand3Slogan is
 
         _safeMint(creator, tokenId);
         _setTokenRoyalty(tokenId, splitter, 250);
-        emit Minted(address(this), tokenId, creator, splitter);
+        emit NewPostEvent(postId, address(this), tokenId, creator, splitter);
     }
 
     //   slogan交易2.5%给到平台，通过交易平台处理
@@ -79,7 +80,7 @@ contract Brand3Slogan is
     function withdraw() public onlyOwner {
         address _owner = owner();
         uint256 amount = address(this).balance;
-        (bool sent, ) = _owner.call{value: amount}("");
+        (bool sent,) = _owner.call{value : amount}("");
         require(sent, "Failed to send Ether");
     }
 
@@ -107,19 +108,19 @@ contract Brand3Slogan is
     }
 
     function supportsInterface(bytes4 interfaceId)
-        public
-        view
-        virtual
-        override(ERC721, ERC721Enumerable, ERC721Royalty)
-        returns (bool)
+    public
+    view
+    virtual
+    override(ERC721, ERC721Enumerable, ERC721Royalty)
+    returns (bool)
     {
         return super.supportsInterface(interfaceId);
     }
 
     function _burn(uint256 tokenId)
-        internal
-        virtual
-        override(ERC721, ERC721Royalty)
+    internal
+    virtual
+    override(ERC721, ERC721Royalty)
     {
         return super._burn(tokenId);
     }
@@ -129,8 +130,9 @@ contract Brand3Slogan is
     }
 
     // events
-    event Minted(
-        address sloganAddress,
+    event NewPostEvent(
+        uint256 postId,
+        address brandAddress,
         uint256 tokenId,
         address creator,
         address splitter
