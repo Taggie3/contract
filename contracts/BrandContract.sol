@@ -10,9 +10,10 @@ import "@openzeppelin/contracts/token/ERC721/extensions/ERC721Burnable.sol";
 import "@openzeppelin/contracts/utils/Counters.sol";
 import "@openzeppelin/contracts/token/ERC721/extensions/ERC721Royalty.sol";
 import "@openzeppelin/contracts/finance/PaymentSplitter.sol";
-import "./TagContract.sol";
 import "./IPContract.sol";
+import "./TagContract.sol";
 
+// turn off revert strings
 contract BrandContract is
     ERC721,
     ERC721Enumerable,
@@ -26,25 +27,20 @@ contract BrandContract is
 
     string _baseTokenURI;
 
-    //  slogan的logo图片地址
     string public logo;
     string public slogan;
-    //  slogan对应的tag数据
     TagContract.Tag[] public tags;
 
     struct IP {
         string name;
         string symbol;
-        IPContract ipContract;
+        address ipAddress;
     }
 
     IP[] public IPs;
 
     mapping(uint256 => string) tokenIdToUri;
 
-    //  新增slogan收钱，无法在constructor中校验收钱，只能通过平台校验
-    //  第1个slogan免费，第2个slogan收0.1ETH，第3个0.5ETH，第4个2.5ETH以此类推
-    //  白名单校验只能通过前后端处理，构造方法中没办法处理预售期结束的逻辑
     constructor(
         string memory _name,
         string memory _symbol,
@@ -116,7 +112,7 @@ contract BrandContract is
             address(this),
             creator
         );
-        IP memory ip = IP(_IPName, _IPSymbol, ipContract);
+        IP memory ip = IP(_IPName, _IPSymbol, address(ipContract));
         IPs.push(ip);
 
         // 抛出新建IP事件

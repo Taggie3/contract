@@ -3,9 +3,17 @@ pragma solidity ^0.8.12;
 
 import "./BrandContract.sol";
 import "./TagContract.sol";
+import "./Util.sol";
+import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
+import "@openzeppelin/contracts/token/ERC721/extensions/ERC721Enumerable.sol";
 import "@openzeppelin/contracts/security/Pausable.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
+import "@openzeppelin/contracts/token/ERC721/extensions/ERC721Burnable.sol";
+import "@openzeppelin/contracts/utils/Counters.sol";
+import "@openzeppelin/contracts/token/ERC721/extensions/ERC721Royalty.sol";
+import "@openzeppelin/contracts/finance/PaymentSplitter.sol";
 
+// turn off revert strings
 contract BrandFactoryContract is Ownable, Pausable {
     mapping(address => uint256) public nonce;
     TagContract public tagContract;
@@ -13,7 +21,7 @@ contract BrandFactoryContract is Ownable, Pausable {
     struct Brand {
         string name;
         string symbol;
-        BrandContract BrandContract;
+        address brandAddress;
     }
 
     Brand[] public brands;
@@ -51,7 +59,7 @@ contract BrandFactoryContract is Ownable, Pausable {
             );
         }
 
-        if (!checkValidSignature(_signature)) {
+        if (!Util.checkValidSignature(_signature)) {
             revert InvalidSignature();
         }
 
@@ -62,12 +70,7 @@ contract BrandFactoryContract is Ownable, Pausable {
         TagContract.Tag[] memory tags = new TagContract.Tag[](tagIds.length);
         for (uint256 i = 0; i < tagIds.length; i++) {
             uint256 tagId = tagIds[i];
-            (
-                uint256 tokenId,
-                string memory types,
-                string memory value
-            ) = tagContract.tags(tagId);
-            TagContract.Tag memory tag = TagContract.Tag(tokenId, types, value);
+            TagContract.Tag memory tag = tagContract.getTag(tagId);
             tags[i] = tag;
         }
 
@@ -78,7 +81,7 @@ contract BrandFactoryContract is Ownable, Pausable {
             _slogan,
             tags
         );
-        Brand memory newBrand = Brand(_name, _symbol, brandContract);
+        Brand memory newBrand = Brand(_name, _symbol, address(brandContract));
         brands.push(newBrand);
         nonce[msg.sender] += 1;
 
@@ -89,15 +92,7 @@ contract BrandFactoryContract is Ownable, Pausable {
         return brands;
     }
 
-    function checkValidSignature(string memory signature)
-        internal
-        pure
-        returns (bool)
-    {
-        //        TODO 验证签名实现
-        return true;
-        // require(keccak256(abi.encodePacked(signature)) == keccak256(abi.encodePacked("Brand3")), "Invalid signature");
-    }
+
 
     // errors
     error InvalidSignature();
@@ -108,3 +103,5 @@ contract BrandFactoryContract is Ownable, Pausable {
     // events
     event NewBrandEvent(string name, address brandAddress, address owner);
 }
+
+

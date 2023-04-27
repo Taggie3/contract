@@ -8,10 +8,7 @@ import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/token/ERC721/extensions/ERC721Burnable.sol";
 import "@openzeppelin/contracts/utils/Counters.sol";
 
-contract TagContract is
-Pausable,
-Ownable
-{
+contract TagContract is Pausable, Ownable {
     using Counters for Counters.Counter;
     Counters.Counter private _tokenIdCounter;
 
@@ -25,8 +22,8 @@ Ownable
     Tag[] public tags;
 
     function mint(string memory _tagTypes, string memory _tagValue)
-    public
-    whenNotPaused
+        public
+        whenNotPaused
     {
         //校验tagString是否已经被mint过了
         for (uint256 i = 0; i < tags.length; i++) {
@@ -50,13 +47,17 @@ Ownable
         return tags;
     }
 
+    function getTag(uint256 tokenId) external view returns (Tag memory) {
+        return tags[tokenId];
+    }
+
     /**
      * 从该合约中提取所有的eth到owner
      */
     function withdraw() public onlyOwner {
         address _owner = owner();
         uint256 amount = address(this).balance;
-        (bool sent,) = _owner.call{value : amount}("");
+        (bool sent, ) = _owner.call{value: amount}("");
         require(sent, "Failed to send Ether");
     }
 
