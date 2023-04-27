@@ -8,22 +8,22 @@ abstract class Pausable{}
 abstract class Ownable{}
 abstract class ERC721Burnable{}
 abstract class ERC721Royalty{}
-class Brand3Factory{
-    + Brand3Tag brand3Tag
-    + Brand3Slogan[] SloganArray
+class BrandFactory{
+    + Tag tag
+    + Brand[] brands
 
     void constructor(address brand3TagAddress)
     + void createNewSlogan(uint256 _nonce,string _signature,string _baseURI,string _name,string _symbol,string _logoUrl,uint256[] tagIds)
-    + Brand3Slogan[] getBrand3Slogan()
+    + Brand[] getBrand()
 }
-note left of Brand3Factory::"createNewSlogan"
+note left of BrandFactory::"createNewSlogan"
     创建新的slogan合约
 end note
-note left of Brand3Factory::"getBrand3Slogan"
+note left of BrandFactory::"getBrand"
     获取当前所有的slogan合约
 end note
 
-class Brand3Slogan extends ERC721,ERC721Enumerable,Pausable,Ownable,ERC721Burnable,ERC721Royalty{
+class Brand extends ERC721,ERC721Enumerable,Pausable,Ownable,ERC721Burnable,ERC721Royalty{
     + string _baseTokenURI
     + string logoUrl
     + uint256[] tagIds
@@ -35,16 +35,16 @@ class Brand3Slogan extends ERC721,ERC721Enumerable,Pausable,Ownable,ERC721Burnab
 
 }
 
-note left of Brand3Slogan::"mint"
+note left of Brand::"mint"
     在slogan中mint一个新的nft
     creator: nft所有者的地址
     splitter: 一个分账合约的地址，版税的所得金额将会打到此合约，再通过这个合约进行分账
 end note
-note left of Brand3Slogan::"getTagIds"
+note left of Brand::"getTagIds"
     获取当前slogan对应的tag的nft的tokenId
 end note
 
-class Brand3Tag extends ERC721,ERC721Enumerable,Pausable,Ownable,ERC721Burnable{
+class TagContract extends ERC721,ERC721Enumerable,Pausable,Ownable,ERC721Burnable{
     +   mapping(uint256 => Tag) tokenIdToTag
     +   mapping(string => Tag) tagValueToTag
     +   mapping(string => bool) tagValueToExist
@@ -56,24 +56,24 @@ class Brand3Tag extends ERC721,ERC721Enumerable,Pausable,Ownable,ERC721Burnable{
     +   void  addMintAddress(address addr)
     +   void  delMintAddress(address addr)
 }
-note right of Brand3Tag::"tokenIdToTag"
+note right of TagContract::"tokenIdToTag"
     tokenId对应的tag
 end note
-note right of Brand3Tag::"tagValueToTag"
+note right of TagContract::"tagValueToTag"
     tagValue对应的tag
 end note
-note right of Brand3Tag::"tagValueToExist"
+note right of TagContract::"tagValueToExist"
     tagValue是否已存在
 end note
-note right of Brand3Tag::"addressToMint"
+note right of TagContract::"addressToMint"
     记录所有已被授权可以mint的地址
 end note
-note right of Brand3Tag::"mint"
+note right of TagContract::"mint"
     在Tag中mint一个新的nft
     tagValue: tag的内容
     sortLevel: tag的排序级别
 end note
-note right of Brand3Tag::"makeSlogan"
+note right of TagContract::"makeSlogan"
     将tag和连接字符串拼接成为一个新的slogan字符串
 end note
 
@@ -86,11 +86,11 @@ struct Tag{
 
 class RoyaltySplitter extends PaymentSplitter{}
 
-Brand3Tag --> Brand3Factory::brand3Tag
-Brand3Slogan --> Brand3Factory::SloganArray
-RoyaltySplitter --> Brand3Slogan::mint
-Tag --> Brand3Tag::tokenIdToTag
-Tag --> Brand3Tag::tagValueToTag
-Brand3Factory::createNewSlogan -[dashed]-> Brand3Slogan
+Tag --> BrandFactory::tag
+Brand --> BrandFactory::SloganArray
+RoyaltySplitter --> Brand::mint
+Tag --> Tag::tokenIdToTag
+Tag --> Tag::tagValueToTag
+BrandFactory::createNewSlogan -[dashed]-> Brand
 
 @enduml

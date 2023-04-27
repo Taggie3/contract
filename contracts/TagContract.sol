@@ -8,9 +8,7 @@ import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/token/ERC721/extensions/ERC721Burnable.sol";
 import "@openzeppelin/contracts/utils/Counters.sol";
 
-import "./interfaces/IBrand3Tag.sol";
-
-contract Brand3Tag is
+contract TagContract is
     ERC721,
     ERC721Enumerable,
     Pausable,
@@ -27,37 +25,35 @@ contract Brand3Tag is
         string value;
     }
 
-    //tokenId对应的tag
-    mapping(uint256 => Tag) public tokenIdToTag;
-    //tagValue对应的tag
-    mapping(string => Tag) public tagValueToTag;
-    //tagValue是否已存在
-    mapping(string => bool) public tagValueToExist;
-
-    mapping(string => Tag[]) public tagTypeToTags;
+    Tag[] public tags;
 
     constructor() ERC721("Brand3Tag", "B3T") {}
 
-    function mint(string memory _tagTypes,string memory _tagValue )
+    function mint(string memory _tagTypes, string memory _tagValue)
         public
         whenNotPaused
     {
         //校验tagString是否已经被mint过了
-        require(!tagValueToExist[_tagValue], "this tag existed");
-        //记录tagValue已存在
-        tagValueToExist[_tagValue] = true;
+        for (uint256 i = 0; i < tags.length; i++) {
+            Tag memory tag = tags[i];
+            require(
+                keccak256(bytes(tag.value)) != keccak256(bytes(_tagValue)),
+                "tag value existed"
+            );
+        }
         //更新tokenId
         uint256 _tokenId = _tokenIdCounter.current();
         _tokenIdCounter.increment();
-        //新建tag
-        Tag memory tag = Tag(_tokenId, _tagTypes, _tagValue);
-        //将tokenId对应的tag保存
-        tagValueToTag[_tagValue] = tag;
-        tokenIdToTag[_tokenId] = tag;
-        tagTypeToTags[_tagTypes].push(tag);
         _safeMint(msg.sender, _tokenId);
+        //新建tag
+        Tag memory newTag = Tag(_tokenId, _tagTypes, _tagValue);
+        tags.push(newTag);
 
         emit NewTagEvent(_tokenId, _tagTypes, _tagValue);
+    }
+
+    function listTag() public view returns (Tag[] memory) {
+        return tags;
     }
 
     /**
