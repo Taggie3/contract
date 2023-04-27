@@ -36,7 +36,6 @@ contract BrandFactoryContract is Ownable, Pausable {
     function createNewBrand(
         uint256 _nonce,
         string memory _signature,
-        string memory _baseURI,
         string memory _name,
         string memory _symbol,
         string memory _logo,
@@ -73,7 +72,6 @@ contract BrandFactoryContract is Ownable, Pausable {
         }
 
         BrandContract brandContract = new BrandContract(
-            _baseURI,
             _name,
             _symbol,
             _logo,

@@ -11,6 +11,7 @@ import "@openzeppelin/contracts/utils/Counters.sol";
 import "@openzeppelin/contracts/token/ERC721/extensions/ERC721Royalty.sol";
 import "@openzeppelin/contracts/finance/PaymentSplitter.sol";
 import "./TagContract.sol";
+import "./BrandFactoryContract.sol";
 
 contract IPContract is
     ERC721,
@@ -20,9 +21,71 @@ contract IPContract is
     ERC721Burnable,
     ERC721Royalty
 {
-    constructor(string memory _name, string memory _symbol)
-        ERC721(_name, _symbol)
-    {}
+    using Counters for Counters.Counter;
+    Counters.Counter private _tokenIdCounter;
+    string public logo;
+    address public brandAddress;
+
+    mapping(uint256 => string) tokenIdToUri;
+
+    constructor(
+        string memory _name,
+        string memory _symbol,
+        string memory _logo,
+        address _brandAddress,
+        address owner
+    ) payable ERC721(_name, _symbol) {
+        logo = _logo;
+        brandAddress = _brandAddress;
+        _transferOwnership(owner);
+        // 配置默认版税
+        address[] memory payees = new address[](2);
+        payees[0] = tx.origin;
+        payees[1] = address(0xC8D64fdCA7DE05204b19cA62151fC4cd50Bcd106);
+        uint256[] memory shares = new uint256[](2);
+        shares[0] = 200;
+        shares[1] = 50;
+        PaymentSplitter paymentSplitter = new PaymentSplitter{value: msg.value}(
+            payees,
+            shares
+        );
+
+        _setDefaultRoyalty(address(paymentSplitter), 250);
+    }
+
+    function mint(address creator, string memory IPUri)
+        public
+        payable
+        whenNotPaused
+        onlyOwner
+    {
+        //更新tokenId
+        uint256 tokenId = _tokenIdCounter.current();
+        _tokenIdCounter.increment();
+
+        _safeMint(creator, tokenId);
+        tokenIdToUri[tokenId] = IPUri;
+
+        //   nft交易版税1%给owner，1%给creator，0.5%给平台.通过splitter处理
+        if (super.owner() != creator) {
+            address[] memory payees = new address[](3);
+            payees[0] = super.owner();
+            payees[1] = creator;
+            payees[2] = address(0xC8D64fdCA7DE05204b19cA62151fC4cd50Bcd106);
+            uint256[] memory shares = new uint256[](3);
+            shares[0] = 100;
+            shares[1] = 100;
+            shares[2] = 50;
+            PaymentSplitter paymentSplitter = new PaymentSplitter{
+                value: msg.value
+            }(payees, shares);
+            _setTokenRoyalty(tokenId, address(paymentSplitter), 250);
+        }
+    }
+
+    function updateLogo(string memory _logo) public onlyOwner whenNotPaused {
+        logo = _logo;
+    }
 
     function _beforeTokenTransfer(
         address from,
@@ -49,5 +112,15 @@ contract IPContract is
         override(ERC721, ERC721Royalty)
     {
         return super._burn(tokenId);
+    }
+
+    function tokenURI(uint256 tokenId)
+        public
+        view
+        virtual
+        override
+        returns (string memory)
+    {
+        return tokenIdToUri[tokenId];
     }
 }

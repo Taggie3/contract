@@ -40,11 +40,12 @@ contract BrandContract is
 
     IP[] public IPs;
 
+    mapping(uint256 => string) tokenIdToUri;
+
     //  新增slogan收钱，无法在constructor中校验收钱，只能通过平台校验
     //  第1个slogan免费，第2个slogan收0.1ETH，第3个0.5ETH，第4个2.5ETH以此类推
     //  白名单校验只能通过前后端处理，构造方法中没办法处理预售期结束的逻辑
     constructor(
-        string memory baseURI,
         string memory _name,
         string memory _symbol,
         string memory _logo,
@@ -54,9 +55,9 @@ contract BrandContract is
         for (uint256 i = 0; i < _tags.length; i++) {
             tags.push(_tags[i]);
         }
-        _baseTokenURI = baseURI;
         logo = _logo;
         slogan = _slogan;
+        _transferOwnership(tx.origin);
 
         // 配置默认版权分账
         //   nft交易版税1%给owner，1%给creator，0.5%给平台.通过splitter处理
@@ -72,8 +73,72 @@ contract BrandContract is
         );
 
         _setDefaultRoyalty(address(paymentSplitter), 250);
-        _transferOwnership(tx.origin);
     }
+
+    // mint数量不限制，只能由owner进行mint，在mint指定splitter地址为版税受益人
+    function mint(
+        address creator,
+        string memory IPUri,
+        string memory _IPName,
+        string memory _IPSymbol,
+        string memory _IPLogo
+    ) public payable whenNotPaused onlyOwner {
+        //        TODO 验证签名
+        require(creator != address(0), "creator is not a valid address");
+        //更新tokenId
+        uint256 tokenId = _tokenIdCounter.current();
+        _tokenIdCounter.increment();
+
+        _safeMint(creator, tokenId);
+        tokenIdToUri[tokenId] = IPUri;
+
+        //   nft交易版税1%给owner，1%给creator，0.5%给平台.通过splitter处理
+        if (super.owner() != creator) {
+            address[] memory payees = new address[](3);
+            payees[0] = super.owner();
+            payees[1] = creator;
+            payees[2] = address(0xC8D64fdCA7DE05204b19cA62151fC4cd50Bcd106);
+            uint256[] memory shares = new uint256[](3);
+            shares[0] = 100;
+            shares[1] = 100;
+            shares[2] = 50;
+            PaymentSplitter paymentSplitter = new PaymentSplitter{
+                value: msg.value
+            }(payees, shares);
+            _setTokenRoyalty(tokenId, address(paymentSplitter), 250);
+        }
+
+        // 新建IP合约
+        IPContract ipContract = new IPContract(
+            _IPName,
+            _IPSymbol,
+            _IPLogo,
+            address(this),
+            creator
+        );
+        IP memory ip = IP(_IPName, _IPSymbol, ipContract);
+        IPs.push(ip);
+
+        // 抛出新建IP事件
+        emit NewIPEvent(
+            tokenId,
+            _IPName,
+            address(ipContract),
+            address(this),
+            creator
+        );
+    }
+
+    //   slogan交易2.5%给到平台，通过交易平台处理
+
+    // events
+    event NewIPEvent(
+        uint256 tokenId,
+        string IPName,
+        address IPAddress,
+        address brandAddress,
+        address IPOwner
+    );
 
     function updateLogo(string memory _logo) public onlyOwner whenNotPaused {
         logo = _logo;
@@ -82,39 +147,6 @@ contract BrandContract is
     function getTags() public view returns (TagContract.Tag[] memory) {
         return tags;
     }
-
-    // mint数量不限制，只能由owner进行mint，在mint指定splitter地址为版税受益人
-    function mint(address creator, address splitter)
-        public
-        whenNotPaused
-        onlyOwner
-    {
-        //        TODO 验证签名
-        require(creator != address(0), "creator is not a valid address");
-        require(splitter != address(0), "splitter is not a valid address");
-        //更新tokenId
-        uint256 tokenId = _tokenIdCounter.current();
-        _tokenIdCounter.increment();
-
-        _safeMint(creator, tokenId);
-
-        //   nft交易版税1%给owner，1%给creator，0.5%给平台.通过splitter处理
-        address[] memory payees = new address[](3);
-        payees[0] = tx.origin;
-        payees[1] = creator;
-        payees[2] = address(0xC8D64fdCA7DE05204b19cA62151fC4cd50Bcd106);
-        uint256[] memory shares = new uint256[](3);
-        shares[0] = 100;
-        shares[1] = 100;
-        shares[2] = 50;
-        PaymentSplitter paymentSplitter = new PaymentSplitter(payees, shares);
-        _setTokenRoyalty(tokenId, address(paymentSplitter), 250);
-
-        // TODO 抛出新建IP异常
-        // emit NewPostEvent(postId, address(this), tokenId, creator, splitter);
-    }
-
-    //   slogan交易2.5%给到平台，通过交易平台处理
 
     /**
      * 从该合约中提取所有的eth到owner
@@ -167,16 +199,13 @@ contract BrandContract is
         return super._burn(tokenId);
     }
 
-    function _baseURI() internal view virtual override returns (string memory) {
-        return _baseTokenURI;
+    function tokenURI(uint256 tokenId)
+        public
+        view
+        virtual
+        override
+        returns (string memory)
+    {
+        return tokenIdToUri[tokenId];
     }
-
-    // events
-    event NewPostEvent(
-        uint256 postId,
-        address brandAddress,
-        uint256 tokenId,
-        address creator,
-        address splitter
-    );
 }

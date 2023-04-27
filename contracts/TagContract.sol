@@ -9,11 +9,8 @@ import "@openzeppelin/contracts/token/ERC721/extensions/ERC721Burnable.sol";
 import "@openzeppelin/contracts/utils/Counters.sol";
 
 contract TagContract is
-    ERC721,
-    ERC721Enumerable,
-    Pausable,
-    Ownable,
-    ERC721Burnable
+Pausable,
+Ownable
 {
     using Counters for Counters.Counter;
     Counters.Counter private _tokenIdCounter;
@@ -27,11 +24,9 @@ contract TagContract is
 
     Tag[] public tags;
 
-    constructor() ERC721("Brand3Tag", "B3T") {}
-
     function mint(string memory _tagTypes, string memory _tagValue)
-        public
-        whenNotPaused
+    public
+    whenNotPaused
     {
         //校验tagString是否已经被mint过了
         for (uint256 i = 0; i < tags.length; i++) {
@@ -44,7 +39,6 @@ contract TagContract is
         //更新tokenId
         uint256 _tokenId = _tokenIdCounter.current();
         _tokenIdCounter.increment();
-        _safeMint(msg.sender, _tokenId);
         //新建tag
         Tag memory newTag = Tag(_tokenId, _tagTypes, _tagValue);
         tags.push(newTag);
@@ -62,7 +56,7 @@ contract TagContract is
     function withdraw() public onlyOwner {
         address _owner = owner();
         uint256 amount = address(this).balance;
-        (bool sent, ) = _owner.call{value: amount}("");
+        (bool sent,) = _owner.call{value : amount}("");
         require(sent, "Failed to send Ether");
     }
 
@@ -78,24 +72,6 @@ contract TagContract is
 
     function unpause() public onlyOwner {
         _unpause();
-    }
-
-    function _beforeTokenTransfer(
-        address from,
-        address to,
-        uint256 tokenId,
-        uint256 batchSize
-    ) internal override(ERC721, ERC721Enumerable) whenNotPaused {
-        super._beforeTokenTransfer(from, to, tokenId, batchSize);
-    }
-
-    function supportsInterface(bytes4 interfaceId)
-        public
-        view
-        override(ERC721, ERC721Enumerable)
-        returns (bool)
-    {
-        return super.supportsInterface(interfaceId);
     }
 
     event NewTagEvent(uint256 tokenId, string types, string value);
