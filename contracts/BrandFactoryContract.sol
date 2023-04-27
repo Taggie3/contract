@@ -1,7 +1,7 @@
 //SPDX-License-Identifier: Unlicense
 pragma solidity ^0.8.12;
 
-import "./BrandContract.sol";
+// import "./BrandContract.sol";
 import "./TagContract.sol";
 import "./Util.sol";
 import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
@@ -26,14 +26,11 @@ contract BrandFactoryContract is Ownable, Pausable {
 
     Brand[] public brands;
 
-    constructor(address payable tagContractAddress) {
+    constructor(address tagContractAddress) {
         tagContract = TagContract(tagContractAddress);
     }
 
-    function changeTagContract(address payable tagContractAddress)
-        public
-        onlyOwner
-    {
+    function changeTagContract(address tagContractAddress) public onlyOwner {
         tagContract = TagContract(tagContractAddress);
     }
 
@@ -59,49 +56,37 @@ contract BrandFactoryContract is Ownable, Pausable {
             );
         }
 
-        if (!Util.checkValidSignature(_signature)) {
-            revert InvalidSignature();
-        }
+        require(Util.checkValidSignature(_signature), "InvalidSignature");
 
         if (_nonce != nonce[msg.sender]) {
             revert InvalidNonce();
         }
 
-        TagContract.Tag[] memory tags = new TagContract.Tag[](tagIds.length);
-        for (uint256 i = 0; i < tagIds.length; i++) {
-            uint256 tagId = tagIds[i];
-            TagContract.Tag memory tag = tagContract.getTag(tagId);
-            tags[i] = tag;
-        }
+        TagContract.Tag[] memory tags = Util.tagIdsToTags(tagIds, tagContract);
 
-        BrandContract brandContract = new BrandContract(
+        address brandAddress = Util.newBrandContract(
             _name,
             _symbol,
             _logo,
             _slogan,
             tags
         );
-        Brand memory newBrand = Brand(_name, _symbol, address(brandContract));
+
+        Brand memory newBrand = Brand(_name, _symbol, brandAddress);
         brands.push(newBrand);
         nonce[msg.sender] += 1;
 
-        emit NewBrandEvent(_name, address(brandContract), msg.sender);
+        emit NewBrandEvent(_name, brandAddress, msg.sender);
     }
 
     function listBrand() external view returns (Brand[] memory) {
         return brands;
     }
 
-
-
     // errors
     error InvalidSignature();
-    error InvalidTag();
     error InvalidNonce();
-    error ContractAlreadyInitialized();
 
     // events
     event NewBrandEvent(string name, address brandAddress, address owner);
 }
-
-

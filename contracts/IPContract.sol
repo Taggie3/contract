@@ -53,7 +53,7 @@ contract IPContract is
         _setDefaultRoyalty(address(paymentSplitter), 250);
     }
 
-    function mint(address creator, string memory IPUri)
+    function mint(address creator, string memory MemeUri)
         public
         payable
         whenNotPaused
@@ -64,7 +64,7 @@ contract IPContract is
         _tokenIdCounter.increment();
 
         _safeMint(creator, tokenId);
-        tokenIdToUri[tokenId] = IPUri;
+        tokenIdToUri[tokenId] = MemeUri;
 
         //   nft交易版税1%给owner，1%给creator，0.5%给平台.通过splitter处理
         if (super.owner() != creator) {
