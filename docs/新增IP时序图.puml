@@ -1,0 +1,25 @@
+@startuml
+'https://plantuml.com/sequence-diagram
+
+autonumber
+
+actor applicant as applicant
+actor "brand owner" as owner
+entity IPContract as IPContract
+entity brandContract as brandContract
+participant alchemy as alchemy
+
+applicant --> backend: apply一个新的IP,并将请求保存在数据库中
+admin --> backend: 发现有一个新的IP申请
+admin --> backend: approve生成一个新的IP
+backend --> admin: 返回IP的metadata
+admin --> IPContract: 部署新的IPContract合约
+admin --> brandContract: mint一个ip
+brandContract --> brandContract: 检查ip合约是否符合要求
+brandContract --> brandContract: 记录新增ip数据
+brandContract --> brandContract: 抛出NewIPEvent
+alchemy --> brandContract:监听到NewIPEvent
+alchemy --> backend: 通知新创建了IP
+backend --> backend: 更新数据库中的IP数据
+
+@enduml
