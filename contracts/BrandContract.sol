@@ -9,8 +9,8 @@ import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/token/ERC721/extensions/ERC721Burnable.sol";
 import "@openzeppelin/contracts/utils/Counters.sol";
 import "@openzeppelin/contracts/token/ERC721/extensions/ERC721Royalty.sol";
-import "./IPContract.sol";
-// import "./TagContract.sol";
+import "./interfaces/IIPContract.sol";
+import "./TagContract.sol";
 import "./Util.sol";
 
 // turn off revert strings
@@ -29,7 +29,7 @@ contract BrandContract is
 
     string public logo;
     string public slogan;
-    uint256[] public tags;
+    TagContract.Tag[] public tags;
 
     struct IP {
         string name;
@@ -37,7 +37,7 @@ contract BrandContract is
         address ipAddress;
     }
 
-    IP[] public IPs;
+    IP[] public ips;
 
     mapping(uint256 => string) tokenIdToUri;
 
@@ -46,12 +46,12 @@ contract BrandContract is
         string memory _symbol,
         string memory _logo,
         string memory _slogan,
-        uint256[] memory _tags
+        TagContract.Tag[] memory _tags
     ) payable ERC721(_name, _symbol) {
-        // for (uint256 i = 0; i < _tags.length; i++) {
-        //     tags.push(_tags[i]);
-        // }
-        tags=_tags;
+        for (uint256 i = 0; i < _tags.length; i++) {
+            tags.push(_tags[i]);
+        }
+        // tags = _tags;
         logo = _logo;
         slogan = _slogan;
         _transferOwnership(tx.origin);
@@ -65,45 +65,55 @@ contract BrandContract is
 
     // mint数量不限制，只能由owner进行mint，在mint指定splitter地址为版税受益人
     function mint(
-        address creator,
-        string memory IPUri,
-        string memory _IPName,
-        string memory _IPSymbol,
-        string memory _IPLogo
+        string memory ipUri,
+        // string memory _signature,
+        address ipContractAddress
     ) public payable whenNotPaused onlyOwner {
-        //        TODO 验证签名
-        require(creator != address(0), "creator is not a valid address");
+        // require(Util.checkValidSignature(_signature), "InvalidSignature");
+        // 检查ip合约
+        IIPContract ipContract = IIPContract(ipContractAddress);
+        require(
+            address(this) == ipContract.brandAddress(),
+            "brandAddress error"
+        );
+
+        string memory ipName = ipContract.name();
+        string memory IPSymbol = ipContract.symbol();
+        address ipOwner = ipContract.owner();
+        // 检查IP是否已存在
+        for (uint256 i = 0; i < ips.length; i++) {
+            IP memory ip = ips[i];
+            require(ip.ipAddress != ipContractAddress, "IP address existed");
+            require(
+                keccak256(bytes(ip.name)) != keccak256(bytes(ipName)),
+                "IP name existed"
+            );
+        }
+
         //更新tokenId
         uint256 tokenId = _tokenIdCounter.current();
         _tokenIdCounter.increment();
 
-        _safeMint(creator, tokenId);
-        tokenIdToUri[tokenId] = IPUri;
+        _safeMint(ipOwner, tokenId);
+        tokenIdToUri[tokenId] = ipUri;
 
         //   nft交易版税1%给owner，1%给creator，0.5%给平台.通过splitter处理
-        if (super.owner() != creator) {
-            address splitterAddress = Util.getSplitter(tx.origin, creator);
+        if (super.owner() != ipOwner) {
+            address splitterAddress = Util.getSplitter(tx.origin, ipOwner);
             _setTokenRoyalty(tokenId, splitterAddress, 250);
         }
 
         // 新建IP合约
-        IPContract ipContract = new IPContract(
-            _IPName,
-            _IPSymbol,
-            _IPLogo,
-            address(this),
-            creator
-        );
-        IP memory ip = IP(_IPName, _IPSymbol, address(ipContract));
-        IPs.push(ip);
+        IP memory newIP = IP(ipName, IPSymbol, ipContractAddress);
+        ips.push(newIP);
 
         // 抛出新建IP事件
         emit NewIPEvent(
             tokenId,
-            _IPName,
-            address(ipContract),
+            ipName,
+            ipContractAddress,
             address(this),
-            creator
+            ipOwner
         );
     }
 
@@ -112,18 +122,22 @@ contract BrandContract is
     // events
     event NewIPEvent(
         uint256 tokenId,
-        string IPName,
-        address IPAddress,
+        string ipName,
+        address ipAddress,
         address brandAddress,
-        address IPOwner
+        address ipOwner
     );
 
     function updateLogo(string memory _logo) public onlyOwner whenNotPaused {
         logo = _logo;
     }
 
-    function getTags() public view returns (uint256[] memory) {
+    function listTags() public view returns (TagContract.Tag[] memory) {
         return tags;
+    }
+
+    function listIPs() public view returns (IP[] memory) {
+        return ips;
     }
 
     /**

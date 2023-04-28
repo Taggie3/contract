@@ -36,9 +36,9 @@ graph以便进行查询。
 
 ## 各合约的接口文档
 
-[Brand3Slogan](./docs/Brand3SloganDoc.md)  
-[Brand3Tag](./docs/Brand3TagDoc.md)  
-[Brand3Factory](./docs/Brand3FactoryDoc.md)  
+[Brand3Slogan](./docs/BrandContractDoc.md)  
+[Brand3Tag](./docs/TagContractDoc.md)  
+[Brand3Factory](./docs/BrandFactoryContractDoc.md)  
 [RoyaltySplitter](./docs/RoyaltySplitterDoc.md)  
 [WihteList](./docs/WhiteListDoc.md)  
 

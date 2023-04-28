@@ -32,11 +32,11 @@ contract IPContract is
         string memory _symbol,
         string memory _logo,
         address _brandAddress,
-        address owner
+        address _creatorAddress
     ) payable ERC721(_name, _symbol) {
         logo = _logo;
         brandAddress = _brandAddress;
-        _transferOwnership(owner);
+        _transferOwnership(_creatorAddress);
         // 配置默认版税
         address splitterAddress = Util.getDefaultSplitter();
 
