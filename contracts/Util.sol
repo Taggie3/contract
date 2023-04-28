@@ -2,7 +2,7 @@
 pragma solidity ^0.8.0;
 
 import "./TagContract.sol";
-import "./BrandContract.sol";
+import "@openzeppelin/contracts/finance/PaymentSplitter.sol";
 
 library Util {
     function checkValidSignature(string memory signature)
@@ -29,20 +29,36 @@ library Util {
         return tags;
     }
 
-    function newBrandContract(
-        string memory _name,
-        string memory _symbol,
-        string memory _logo,
-        string memory _slogan,
-        TagContract.Tag[] memory tags
-    ) public returns (address brandAddress) {
-        BrandContract brandContract = new BrandContract(
-            _name,
-            _symbol,
-            _logo,
-            _slogan,
-            tags
+    function getDefaultSplitter() public returns (address splitterAddress) {
+        address[] memory payees = new address[](2);
+        payees[0] = tx.origin;
+        payees[1] = address(0xC8D64fdCA7DE05204b19cA62151fC4cd50Bcd106);
+        uint256[] memory shares = new uint256[](2);
+        shares[0] = 200;
+        shares[1] = 50;
+        PaymentSplitter paymentSplitter = new PaymentSplitter{value: msg.value}(
+            payees,
+            shares
         );
-        return address(brandContract);
+        return address(paymentSplitter);
+    }
+
+    function getSplitter(address owner, address creator)
+        public
+        returns (address splitterAddress)
+    {
+        address[] memory payees = new address[](3);
+        payees[0] = owner;
+        payees[1] = creator;
+        payees[2] = address(0xC8D64fdCA7DE05204b19cA62151fC4cd50Bcd106);
+        uint256[] memory shares = new uint256[](3);
+        shares[0] = 100;
+        shares[1] = 100;
+        shares[2] = 50;
+        PaymentSplitter paymentSplitter = new PaymentSplitter{value: msg.value}(
+            payees,
+            shares
+        );
+        return address(paymentSplitter);
     }
 }

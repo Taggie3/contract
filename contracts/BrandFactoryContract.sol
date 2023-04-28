@@ -1,8 +1,7 @@
 //SPDX-License-Identifier: Unlicense
 pragma solidity ^0.8.12;
 
-// import "./BrandContract.sol";
-import "./TagContract.sol";
+import "./BrandContract.sol";
 import "./Util.sol";
 import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
 import "@openzeppelin/contracts/token/ERC721/extensions/ERC721Enumerable.sol";
@@ -16,7 +15,7 @@ import "@openzeppelin/contracts/finance/PaymentSplitter.sol";
 // turn off revert strings
 contract BrandFactoryContract is Ownable, Pausable {
     mapping(address => uint256) public nonce;
-    TagContract public tagContract;
+    address tagAddress;
 
     struct Brand {
         string name;
@@ -25,13 +24,14 @@ contract BrandFactoryContract is Ownable, Pausable {
     }
 
     Brand[] public brands;
+    mapping(string => bool) brandExist;
 
-    constructor(address tagContractAddress) {
-        tagContract = TagContract(tagContractAddress);
+    constructor(address _tagAddress) {
+        tagAddress = _tagAddress;
     }
 
-    function changeTagContract(address tagContractAddress) public onlyOwner {
-        tagContract = TagContract(tagContractAddress);
+    function changeTagContract(address _tagAddress) public onlyOwner {
+        tagAddress = _tagAddress;
     }
 
     function getNonce(address) external view returns (uint256) {
@@ -47,34 +47,29 @@ contract BrandFactoryContract is Ownable, Pausable {
         string memory _slogan,
         uint256[] memory tagIds
     ) external whenNotPaused {
-        // 检查brand是否已存在
-        for (uint256 i = 0; i < brands.length; i++) {
-            Brand memory brand = brands[i];
-            require(
-                keccak256(bytes(brand.name)) != keccak256(bytes(_name)),
-                "brand name existed"
-            );
-        }
-
+        require(!brandExist[_name], "brand existed");
         require(Util.checkValidSignature(_signature), "InvalidSignature");
 
         if (_nonce != nonce[msg.sender]) {
             revert InvalidNonce();
         }
 
-        TagContract.Tag[] memory tags = Util.tagIdsToTags(tagIds, tagContract);
+        // TagContract.Tag[] memory tags = Util.tagIdsToTags(tagIds, tagContract);
 
-        address brandAddress = Util.newBrandContract(
+        BrandContract brandContract = new BrandContract(
             _name,
             _symbol,
             _logo,
             _slogan,
-            tags
+            tagIds
         );
+        address brandAddress = address(brandContract);
 
         Brand memory newBrand = Brand(_name, _symbol, brandAddress);
         brands.push(newBrand);
         nonce[msg.sender] += 1;
+
+        brandExist[_name] = true;
 
         emit NewBrandEvent(_name, brandAddress, msg.sender);
     }

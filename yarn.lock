@@ -927,7 +927,7 @@
   "resolved" "https://registry.npmjs.org/@openzeppelin/contracts-upgradeable/-/contracts-upgradeable-4.8.1.tgz"
   "version" "4.8.1"
 
-"@openzeppelin/contracts@^4.7.3":
+"@openzeppelin/contracts@^4.8.1":
   "integrity" "sha512-xQ6eUZl+RDyb/FiZe1h+U7qr/f4p/SrTSQcTPH2bjur3C5DbuW/zFgCU/b1P/xcIaEqJep+9ju4xDRi3rmChdQ=="
   "resolved" "https://registry.npmjs.org/@openzeppelin/contracts/-/contracts-4.8.1.tgz"
   "version" "4.8.1"
@@ -2667,17 +2667,10 @@
     "base64-js" "^1.3.1"
     "ieee754" "^1.2.1"
 
-"bufferutil@^4.0.1":
+"bufferutil@^4.0.1", "bufferutil@4.0.5":
   "integrity" "sha512-kukuqc39WOHtdxtw4UScxF/WVnMFVSQVKhtx3AjZJzhd0RGZZldcrfSEbVsWWe6KNH253574cq5F+wpv0G9pJw=="
   "resolved" "https://registry.npmjs.org/bufferutil/-/bufferutil-4.0.7.tgz"
   "version" "4.0.7"
-  dependencies:
-    "node-gyp-build" "^4.3.0"
-
-"bufferutil@4.0.5":
-  "integrity" "sha512-HTm14iMQKK2FjFLRTM5lAVcyaUzOnqbPtesFIvREgXpJHdQm8bWS+GkQgIkfaBYRHuCnea7w8UVNfwiAQhlr9A=="
-  "resolved" "https://registry.npmjs.org/bufferutil/-/bufferutil-4.0.5.tgz"
-  "version" "4.0.5"
   dependencies:
     "node-gyp-build" "^4.3.0"
 
@@ -9291,17 +9284,10 @@
   "resolved" "https://registry.npmjs.org/url-set-query/-/url-set-query-1.0.0.tgz"
   "version" "1.0.0"
 
-"utf-8-validate@^5.0.2":
+"utf-8-validate@^5.0.2", "utf-8-validate@5.0.7":
   "integrity" "sha512-Z6czzLq4u8fPOyx7TU6X3dvUZVvoJmxSQ+IcrlmagKhilxlhZgxPK6C5Jqbkw1IDUmFTM+cz9QDnnLTwDz/2gQ=="
   "resolved" "https://registry.npmjs.org/utf-8-validate/-/utf-8-validate-5.0.10.tgz"
   "version" "5.0.10"
-  dependencies:
-    "node-gyp-build" "^4.3.0"
-
-"utf-8-validate@5.0.7":
-  "integrity" "sha512-vLt1O5Pp+flcArHGIyKEQq883nBt8nN8tVBcoL0qUXj2XT1n7p70yGIq2VK98I5FdZ1YHc0wk/koOnHjnXWk1Q=="
-  "resolved" "https://registry.npmjs.org/utf-8-validate/-/utf-8-validate-5.0.7.tgz"
-  "version" "5.0.7"
   dependencies:
     "node-gyp-build" "^4.3.0"
 

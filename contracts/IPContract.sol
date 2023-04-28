@@ -10,8 +10,7 @@ import "@openzeppelin/contracts/token/ERC721/extensions/ERC721Burnable.sol";
 import "@openzeppelin/contracts/utils/Counters.sol";
 import "@openzeppelin/contracts/token/ERC721/extensions/ERC721Royalty.sol";
 import "@openzeppelin/contracts/finance/PaymentSplitter.sol";
-import "./TagContract.sol";
-import "./BrandFactoryContract.sol";
+import "./Util.sol";
 
 contract IPContract is
     ERC721,
@@ -39,18 +38,9 @@ contract IPContract is
         brandAddress = _brandAddress;
         _transferOwnership(owner);
         // 配置默认版税
-        address[] memory payees = new address[](2);
-        payees[0] = tx.origin;
-        payees[1] = address(0xC8D64fdCA7DE05204b19cA62151fC4cd50Bcd106);
-        uint256[] memory shares = new uint256[](2);
-        shares[0] = 200;
-        shares[1] = 50;
-        PaymentSplitter paymentSplitter = new PaymentSplitter{value: msg.value}(
-            payees,
-            shares
-        );
+        address splitterAddress = Util.getDefaultSplitter();
 
-        _setDefaultRoyalty(address(paymentSplitter), 250);
+        _setDefaultRoyalty(splitterAddress, 250);
     }
 
     function mint(address creator, string memory MemeUri)
@@ -68,18 +58,8 @@ contract IPContract is
 
         //   nft交易版税1%给owner，1%给creator，0.5%给平台.通过splitter处理
         if (super.owner() != creator) {
-            address[] memory payees = new address[](3);
-            payees[0] = super.owner();
-            payees[1] = creator;
-            payees[2] = address(0xC8D64fdCA7DE05204b19cA62151fC4cd50Bcd106);
-            uint256[] memory shares = new uint256[](3);
-            shares[0] = 100;
-            shares[1] = 100;
-            shares[2] = 50;
-            PaymentSplitter paymentSplitter = new PaymentSplitter{
-                value: msg.value
-            }(payees, shares);
-            _setTokenRoyalty(tokenId, address(paymentSplitter), 250);
+            address splitterAddress = Util.getSplitter(tx.origin, creator);
+            _setTokenRoyalty(tokenId, splitterAddress, 250);
         }
     }
 
