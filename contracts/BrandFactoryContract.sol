@@ -34,10 +34,6 @@ contract BrandFactoryContract is Ownable, Pausable {
         tagContract = TagContract(tagContractAddress);
     }
 
-    function getNonce(address) external view returns (uint256) {
-        return nonce[msg.sender];
-    }
-
     function createNewBrand(
         uint256 _nonce,
         string memory _signature,
