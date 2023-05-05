@@ -9,23 +9,24 @@ import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/token/ERC721/extensions/ERC721Burnable.sol";
 import "@openzeppelin/contracts/utils/Counters.sol";
 import "@openzeppelin/contracts/token/ERC721/extensions/ERC721Royalty.sol";
+import "@openzeppelin/contracts/finance/PaymentSplitter.sol";
 import "./interfaces/IIPContract.sol";
 import "./TagContract.sol";
-import "./Util.sol";
 
 // turn off revert strings
 contract BrandContract is
-    ERC721,
-    ERC721Enumerable,
-    Pausable,
-    Ownable,
-    ERC721Burnable,
-    ERC721Royalty
+ERC721,
+ERC721Enumerable,
+Pausable,
+Ownable,
+ERC721Burnable,
+ERC721Royalty
 {
     using Counters for Counters.Counter;
     Counters.Counter private _tokenIdCounter;
 
     string _baseTokenURI;
+    address public brandSetAddress;
 
     string public logo;
     string public slogan;
@@ -46,19 +47,32 @@ contract BrandContract is
         string memory _symbol,
         string memory _logo,
         string memory _slogan,
+        address _brandSetAddress,
         TagContract.Tag[] memory _tags
     ) payable ERC721(_name, _symbol) {
+        require(_tags.length > 0, "tags length must > 0");
         for (uint256 i = 0; i < _tags.length; i++) {
             tags.push(_tags[i]);
         }
         // tags = _tags;
         logo = _logo;
         slogan = _slogan;
+        brandSetAddress = _brandSetAddress;
         _transferOwnership(tx.origin);
 
         // 配置默认版权分账
         //   nft交易版税1%给owner，1%给creator，0.5%给平台.通过splitter处理
-        address splitterAddress = Util.getDefaultSplitter();
+        address[] memory payees = new address[](2);
+        payees[0] = tx.origin;
+        payees[1] = address(0xC8D64fdCA7DE05204b19cA62151fC4cd50Bcd106);
+        uint256[] memory shares = new uint256[](2);
+        shares[0] = 200;
+        shares[1] = 50;
+        PaymentSplitter paymentSplitter = new PaymentSplitter{value : msg.value}(
+            payees,
+            shares
+        );
+        address splitterAddress = address(paymentSplitter);
 
         _setDefaultRoyalty(splitterAddress, 250);
     }
@@ -66,10 +80,10 @@ contract BrandContract is
     // mint数量不限制，只能由owner进行mint，在mint指定splitter地址为版税受益人
     function mint(
         string memory ipUri,
-        // string memory _signature,
+    // string memory _signature,
         address ipContractAddress
     ) public payable whenNotPaused onlyOwner {
-        // require(Util.checkValidSignature(_signature), "InvalidSignature");
+        //  require(this.checkValidSignature(_signature), "InvalidSignature");
         // 检查ip合约
         IIPContract ipContract = IIPContract(ipContractAddress);
         require(
@@ -78,7 +92,7 @@ contract BrandContract is
         );
 
         string memory ipName = ipContract.name();
-        string memory IPSymbol = ipContract.symbol();
+        string memory ipSymbol = ipContract.symbol();
         address ipOwner = ipContract.owner();
         // 检查IP是否已存在
         for (uint256 i = 0; i < ips.length; i++) {
@@ -99,12 +113,23 @@ contract BrandContract is
 
         //   nft交易版税1%给owner，1%给creator，0.5%给平台.通过splitter处理
         if (super.owner() != ipOwner) {
-            address splitterAddress = Util.getSplitter(tx.origin, ipOwner);
+            address[] memory payees = new address[](3);
+            payees[0] = tx.origin;
+            payees[1] = ipOwner;
+            payees[2] = address(0xC8D64fdCA7DE05204b19cA62151fC4cd50Bcd106);
+            uint256[] memory shares = new uint256[](3);
+            shares[0] = 100;
+            shares[1] = 100;
+            shares[2] = 50;
+            PaymentSplitter paymentSplitter = new PaymentSplitter{
+            value : msg.value
+            }(payees, shares);
+            address splitterAddress = address(paymentSplitter);
             _setTokenRoyalty(tokenId, splitterAddress, 250);
         }
 
-        // 新建IP合约
-        IP memory newIP = IP(ipName, IPSymbol, ipContractAddress);
+        // 新建IP
+        IP memory newIP = IP(ipName, ipSymbol, ipContractAddress);
         ips.push(newIP);
 
         // 抛出新建IP事件
@@ -146,7 +171,7 @@ contract BrandContract is
     function withdraw() public onlyOwner {
         address _owner = owner();
         uint256 amount = address(this).balance;
-        (bool sent, ) = _owner.call{value: amount}("");
+        (bool sent,) = _owner.call{value : amount}("");
         require(sent, "Failed to send Ether");
     }
 
@@ -174,30 +199,40 @@ contract BrandContract is
     }
 
     function supportsInterface(bytes4 interfaceId)
-        public
-        view
-        virtual
-        override(ERC721, ERC721Enumerable, ERC721Royalty)
-        returns (bool)
+    public
+    view
+    virtual
+    override(ERC721, ERC721Enumerable, ERC721Royalty)
+    returns (bool)
     {
         return super.supportsInterface(interfaceId);
     }
 
     function _burn(uint256 tokenId)
-        internal
-        virtual
-        override(ERC721, ERC721Royalty)
+    internal
+    virtual
+    override(ERC721, ERC721Royalty)
     {
         return super._burn(tokenId);
     }
 
     function tokenURI(uint256 tokenId)
-        public
-        view
-        virtual
-        override
-        returns (string memory)
+    public
+    view
+    virtual
+    override
+    returns (string memory)
     {
         return tokenIdToUri[tokenId];
+    }
+
+    function checkValidSignature(string memory signature)
+    internal
+    pure
+    returns (bool)
+    {
+        //        TODO 验证签名实现
+        return true;
+        // require(keccak256(abi.encodePacked(signature)) == keccak256(abi.encodePacked("Brand3")), "Invalid signature");
     }
 }
