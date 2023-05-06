@@ -162,31 +162,32 @@ contract BrandSetContract is
         // require(keccak256(abi.encodePacked(signature)) == keccak256(abi.encodePacked("Brand3")), "Invalid signature");
     }
 
-    function verify(bytes memory signature, string memory data)
-        public
-        pure
-        returns (address)
-    {
-        bytes32 messageHash = keccak256(abi.encodePacked(data));
-        return ECDSA.recover(messageHash, hexssignature);
+    function recoverSigner(
+        string memory message,
+        uint8 v,
+        bytes32 r,
+        bytes32 s
+    ) public pure returns (address) {
+        // Recover the signer's address using the ecrecover function
+        address signer = ecrecover(getMessageHash(message), v, r, s);
+
+        return signer;
     }
 
-    function hexStringToBytes(string memory hexString)
-        internal
+    function getMessageHash(string memory message)
+        public
         pure
-        returns (bytes memory)
+        returns (bytes32)
     {
-        bytes memory bytesString = bytes(hexString);
-        require(bytesString.length % 2 == 0, "Invalid hex string");
+        // Hash the message with the Ethereum prefix
+        bytes32 messageHash = keccak256(
+            abi.encodePacked(
+                "\x19Ethereum Signed Message:\n32",
+                keccak256(bytes(message))
+            )
+        );
 
-        bytes memory bytesArray = new bytes(bytesString.length / 2);
-        for (uint256 i = 0; i < bytesArray.length; i++) {
-            uint256 hexPair = uint256(uint8(bytesString[2 * i])) *
-                256 +
-                uint256(uint8(bytesString[2 * i + 1]));
-            bytesArray[i] = bytes1(uint8(hexPair));
-        }
-        return bytesArray;
+        return messageHash;
     }
 
     /**
