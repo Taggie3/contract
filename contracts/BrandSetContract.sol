@@ -39,7 +39,8 @@ contract BrandSetContract is
     mapping(uint256 => string) tokenIdToUri;
     mapping(uint256 => Brand) tokenIdToBrand;
 
-    constructor() payable ERC721("Brand", "BRAND") {
+    constructor(address tagContractAddress) payable ERC721("Brand", "BRAND") {
+        tagContract = TagContract(tagContractAddress);
         _transferOwnership(tx.origin);
 
         address[] memory payees = new address[](2);
