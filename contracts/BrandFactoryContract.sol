@@ -15,7 +15,6 @@ import "@openzeppelin/contracts/finance/PaymentSplitter.sol";
 
 // turn off revert strings
 contract BrandFactoryContract is Ownable, Pausable {
-    mapping(address => uint256) public nonce;
     TagContract public tagContract;
 
     struct Brand {
@@ -35,7 +34,6 @@ contract BrandFactoryContract is Ownable, Pausable {
     }
 
     function createNewBrand(
-        uint256 _nonce,
         string memory _signature,
         string memory _name,
         string memory _symbol,
@@ -54,10 +52,6 @@ contract BrandFactoryContract is Ownable, Pausable {
 
         require(Util.checkValidSignature(_signature), "InvalidSignature");
 
-        if (_nonce != nonce[msg.sender]) {
-            revert InvalidNonce();
-        }
-
         TagContract.Tag[] memory tags = Util.tagIdsToTags(tagIds, tagContract);
 
         BrandContract brandContract = new BrandContract(
@@ -71,7 +65,6 @@ contract BrandFactoryContract is Ownable, Pausable {
 
         Brand memory newBrand = Brand(_name, _symbol, brandAddress);
         brands.push(newBrand);
-        nonce[msg.sender] += 1;
 
         emit NewBrandEvent(_name, brandAddress, msg.sender);
     }
