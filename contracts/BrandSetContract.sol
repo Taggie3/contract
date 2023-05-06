@@ -12,7 +12,7 @@ import "@openzeppelin/contracts/finance/PaymentSplitter.sol";
 import "./TagContract.sol";
 import "./interfaces/IBrandContract.sol";
 import "@openzeppelin/contracts/utils/cryptography/SignatureChecker.sol";
-import "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
+import "@openzeppelin/contracts/utils/Strings.sol";
 
 // turn off revert strings
 contract BrandSetContract is
@@ -37,13 +37,11 @@ contract BrandSetContract is
     Brand[] public brands;
 
     mapping(uint256 => string) tokenIdToUri;
+    mapping(uint256 => Brand) tokenIdToBrand;
 
     constructor() payable ERC721("Brand", "BRAND") {
-        // tagContract = TagContract(tagContractAddress);
         _transferOwnership(tx.origin);
 
-        // 配置默认版权分账
-        //   nft交易版税1%给owner，1%给creator，0.5%给平台.通过splitter处理
         address[] memory payees = new address[](2);
         payees[0] = tx.origin;
         payees[1] = address(0xC8D64fdCA7DE05204b19cA62151fC4cd50Bcd106);
@@ -69,10 +67,9 @@ contract BrandSetContract is
 
     function mint(
         string memory brandUri,
-        // string memory _signature,
+        bytes memory signature,
         address brandContractAddress
     ) public payable whenNotPaused {
-        //        require(this.checkValidSignature(_signature), "InvalidSignature");
         IBrandContract brandContract = IBrandContract(brandContractAddress);
 
         require(
@@ -82,6 +79,11 @@ contract BrandSetContract is
 
         string memory brandName = brandContract.name();
         string memory brandSymbol = brandContract.symbol();
+
+        require(
+            this.checkValidSignature(signature, brandName, this.owner()),
+            "InvalidSignature"
+        );
         address brandOwner = brandContract.owner();
         // 检查brand是否已存在
         for (uint256 i = 0; i < brands.length; i++) {
@@ -132,62 +134,36 @@ contract BrandSetContract is
             brandContractAddress
         );
         brands.push(newBrand);
+        tokenIdToBrand[tokenId] = newBrand;
 
-        emit NewBrandEvent(brandName, brandContractAddress, msg.sender);
+        emit NewBrandEvent(
+            tokenId,
+            brandName,
+            brandContractAddress,
+            msg.sender
+        );
     }
 
     event NewBrandEvent(
+        uint256 tokenId,
         string brandName,
         address brandContractAddress,
-        address owner
+        address brandOwner
     );
 
     function listBrand() external view returns (Brand[] memory) {
         return brands;
     }
 
-    function checkValidSignature(
-        bytes memory signature,
-        string memory data,
-        address signer
-    ) public view returns (bool) {
-        //        TODO 验证签名实现
-        bytes32 messageHash = keccak256(abi.encodePacked(data));
-        return
-            SignatureChecker.isValidSignatureNow(
-                signer,
-                messageHash,
-                signature
-            );
-        // require(keccak256(abi.encodePacked(signature)) == keccak256(abi.encodePacked("Brand3")), "Invalid signature");
-    }
-
-    function recoverSigner(
-        string memory message,
-        uint8 v,
-        bytes32 r,
-        bytes32 s
-    ) public pure returns (address) {
-        // Recover the signer's address using the ecrecover function
-        address signer = ecrecover(getMessageHash(message), v, r, s);
-
-        return signer;
-    }
-
-    function getMessageHash(string memory message)
-        public
-        pure
-        returns (bytes32)
-    {
-        // Hash the message with the Ethereum prefix
-        bytes32 messageHash = keccak256(
-            abi.encodePacked(
-                "\x19Ethereum Signed Message:\n32",
-                keccak256(bytes(message))
-            )
-        );
-
-        return messageHash;
+    function _afterTokenTransfer(
+        address from,
+        address to,
+        uint256 firstTokenId,
+        uint256 batchSize
+    ) internal virtual override(ERC721) {
+        address brandAddress = tokenIdToBrand[firstTokenId].brandAddress;
+        IBrandContract brandContract = IBrandContract(brandAddress);
+        brandContract.transferOwnership(to);
     }
 
     /**
@@ -249,5 +225,35 @@ contract BrandSetContract is
         returns (string memory)
     {
         return tokenIdToUri[tokenId];
+    }
+
+    function checkValidSignature(
+        bytes memory signature,
+        string memory message,
+        address signer
+    ) public view returns (bool) {
+        bytes32 messageHash = getMessageHash(message);
+        return
+            SignatureChecker.isValidSignatureNow(
+                signer,
+                messageHash,
+                signature
+            );
+    }
+
+    function getMessageHash(string memory message)
+        public
+        pure
+        returns (bytes32)
+    {
+        bytes32 messageHash = keccak256(
+            abi.encodePacked(
+                "\x19Ethereum Signed Message:\n",
+                Strings.toString(bytes(message).length),
+                bytes(message)
+            )
+        );
+
+        return messageHash;
     }
 }

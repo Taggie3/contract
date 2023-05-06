@@ -80,10 +80,8 @@ ERC721Royalty
     // mint数量不限制，只能由owner进行mint，在mint指定splitter地址为版税受益人
     function mint(
         string memory ipUri,
-    // string memory _signature,
         address ipContractAddress
     ) public payable whenNotPaused onlyOwner {
-        //  require(this.checkValidSignature(_signature), "InvalidSignature");
         // 检查ip合约
         IIPContract ipContract = IIPContract(ipContractAddress);
         require(
@@ -226,13 +224,4 @@ ERC721Royalty
         return tokenIdToUri[tokenId];
     }
 
-    function checkValidSignature(string memory signature)
-    internal
-    pure
-    returns (bool)
-    {
-        //        TODO 验证签名实现
-        return true;
-        // require(keccak256(abi.encodePacked(signature)) == keccak256(abi.encodePacked("Brand3")), "Invalid signature");
-    }
 }

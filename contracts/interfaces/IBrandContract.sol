@@ -4,7 +4,6 @@ pragma solidity ^0.8.0;
 import "../TagContract.sol";
 
 interface IBrandContract {
-
     function brandSetAddress() external view returns (address);
 
     function name() external view returns (string memory);
@@ -15,4 +14,5 @@ interface IBrandContract {
 
     function tags() external view returns (TagContract.Tag[] memory);
 
+    function transferOwnership(address newOwner) external;
 }
