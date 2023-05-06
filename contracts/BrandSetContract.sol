@@ -11,6 +11,8 @@ import "@openzeppelin/contracts/token/ERC721/extensions/ERC721Royalty.sol";
 import "@openzeppelin/contracts/finance/PaymentSplitter.sol";
 import "./TagContract.sol";
 import "./interfaces/IBrandContract.sol";
+import "@openzeppelin/contracts/utils/cryptography/SignatureChecker.sol";
+import "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
 
 // turn off revert strings
 contract BrandSetContract is
@@ -36,8 +38,8 @@ contract BrandSetContract is
 
     mapping(uint256 => string) tokenIdToUri;
 
-    constructor(address tagContractAddress) payable ERC721("Brand", "BRAND") {
-        tagContract = TagContract(tagContractAddress);
+    constructor() payable ERC721("Brand", "BRAND") {
+        // tagContract = TagContract(tagContractAddress);
         _transferOwnership(tx.origin);
 
         // 配置默认版权分账
@@ -144,17 +146,48 @@ contract BrandSetContract is
         return brands;
     }
 
-    function checkValidSignature(string memory signature)
-        internal
-        pure
-        returns (bool)
-    {
+    function checkValidSignature(
+        bytes memory signature,
+        string memory data,
+        address signer
+    ) public view returns (bool) {
         //        TODO 验证签名实现
-        return true;
+        bytes32 messageHash = keccak256(abi.encodePacked(data));
+        return
+            SignatureChecker.isValidSignatureNow(
+                signer,
+                messageHash,
+                signature
+            );
         // require(keccak256(abi.encodePacked(signature)) == keccak256(abi.encodePacked("Brand3")), "Invalid signature");
     }
 
-    // events
+    function verify(bytes memory signature, string memory data)
+        public
+        pure
+        returns (address)
+    {
+        bytes32 messageHash = keccak256(abi.encodePacked(data));
+        return ECDSA.recover(messageHash, hexssignature);
+    }
+
+    function hexStringToBytes(string memory hexString)
+        internal
+        pure
+        returns (bytes memory)
+    {
+        bytes memory bytesString = bytes(hexString);
+        require(bytesString.length % 2 == 0, "Invalid hex string");
+
+        bytes memory bytesArray = new bytes(bytesString.length / 2);
+        for (uint256 i = 0; i < bytesArray.length; i++) {
+            uint256 hexPair = uint256(uint8(bytesString[2 * i])) *
+                256 +
+                uint256(uint8(bytesString[2 * i + 1]));
+            bytesArray[i] = bytes1(uint8(hexPair));
+        }
+        return bytesArray;
+    }
 
     /**
      * 从该合约中提取所有的eth到owner
