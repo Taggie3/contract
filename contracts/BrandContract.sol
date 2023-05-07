@@ -41,6 +41,7 @@ ERC721Royalty
     IP[] public ips;
 
     mapping(uint256 => string) tokenIdToUri;
+    mapping(uint256 => IP) tokenIdToIP;
 
     constructor(
         string memory _name,
@@ -129,6 +130,7 @@ ERC721Royalty
         // 新建IP
         IP memory newIP = IP(ipName, ipSymbol, ipContractAddress);
         ips.push(newIP);
+        tokenIdToIP[tokenId] = newIP;
 
         // 抛出新建IP事件
         emit NewIPEvent(
@@ -161,6 +163,17 @@ ERC721Royalty
 
     function listIPs() public view returns (IP[] memory) {
         return ips;
+    }
+
+    function _afterTokenTransfer(
+        address from,
+        address to,
+        uint256 firstTokenId,
+        uint256 batchSize
+    ) internal virtual override(ERC721) {
+        address ipAddress = tokenIdToIP[firstTokenId].ipAddress;
+        IIPContract ipContract = IIPContract(ipAddress);
+        ipContract.transferOwnership(to);
     }
 
     /**

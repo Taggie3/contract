@@ -9,4 +9,6 @@ interface IIPContract {
     function symbol() external view returns (string memory);
 
     function owner() external view returns (address);
+
+    function transferOwnership(address newOwner) external;
 }

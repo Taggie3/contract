@@ -12,12 +12,12 @@ import "@openzeppelin/contracts/token/ERC721/extensions/ERC721Royalty.sol";
 import "@openzeppelin/contracts/finance/PaymentSplitter.sol";
 
 contract IPContract is
-    ERC721,
-    ERC721Enumerable,
-    Pausable,
-    Ownable,
-    ERC721Burnable,
-    ERC721Royalty
+ERC721,
+ERC721Enumerable,
+Pausable,
+Ownable,
+ERC721Burnable,
+ERC721Royalty
 {
     using Counters for Counters.Counter;
     Counters.Counter private _tokenIdCounter;
@@ -43,7 +43,7 @@ contract IPContract is
         uint256[] memory shares = new uint256[](2);
         shares[0] = 200;
         shares[1] = 50;
-        PaymentSplitter paymentSplitter = new PaymentSplitter{value: msg.value}(
+        PaymentSplitter paymentSplitter = new PaymentSplitter{value : msg.value}(
             payees,
             shares
         );
@@ -52,11 +52,11 @@ contract IPContract is
         _setDefaultRoyalty(splitterAddress, 250);
     }
 
-    function mint(address creator, string memory MemeUri)
-        public
-        payable
-        whenNotPaused
-        onlyOwner
+    function mint(address creator, string memory MemeUri, uint256 memeId)
+    public
+    payable
+    whenNotPaused
+    onlyOwner
     {
         //更新tokenId
         uint256 tokenId = _tokenIdCounter.current();
@@ -76,12 +76,29 @@ contract IPContract is
             shares[1] = 100;
             shares[2] = 50;
             PaymentSplitter paymentSplitter = new PaymentSplitter{
-                value: msg.value
+            value : msg.value
             }(payees, shares);
             address splitterAddress = address(paymentSplitter);
             _setTokenRoyalty(tokenId, splitterAddress, 250);
         }
+
+        emit NewMemeEvent(
+            tokenId,
+            memeId,
+            address(this),
+            brandAddress,
+            creator
+        );
     }
+
+    // events
+    event NewMemeEvent(
+        uint256 tokenId,
+        uint256 memeId,
+        address ipAddress,
+        address brandAddress,
+        address memeOwner
+    );
 
     function updateLogo(string memory _logo) public onlyOwner whenNotPaused {
         logo = _logo;
@@ -97,29 +114,29 @@ contract IPContract is
     }
 
     function supportsInterface(bytes4 interfaceId)
-        public
-        view
-        virtual
-        override(ERC721, ERC721Enumerable, ERC721Royalty)
-        returns (bool)
+    public
+    view
+    virtual
+    override(ERC721, ERC721Enumerable, ERC721Royalty)
+    returns (bool)
     {
         return super.supportsInterface(interfaceId);
     }
 
     function _burn(uint256 tokenId)
-        internal
-        virtual
-        override(ERC721, ERC721Royalty)
+    internal
+    virtual
+    override(ERC721, ERC721Royalty)
     {
         return super._burn(tokenId);
     }
 
     function tokenURI(uint256 tokenId)
-        public
-        view
-        virtual
-        override
-        returns (string memory)
+    public
+    view
+    virtual
+    override
+    returns (string memory)
     {
         return tokenIdToUri[tokenId];
     }
