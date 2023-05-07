@@ -84,6 +84,43 @@
     "anonymous": false,
     "inputs": [
       {
+        "indexed": false,
+        "internalType": "uint256",
+        "name": "tokenId",
+        "type": "uint256"
+      },
+      {
+        "indexed": false,
+        "internalType": "uint256",
+        "name": "memeId",
+        "type": "uint256"
+      },
+      {
+        "indexed": false,
+        "internalType": "address",
+        "name": "ipAddress",
+        "type": "address"
+      },
+      {
+        "indexed": false,
+        "internalType": "address",
+        "name": "brandAddress",
+        "type": "address"
+      },
+      {
+        "indexed": false,
+        "internalType": "address",
+        "name": "memeOwner",
+        "type": "address"
+      }
+    ],
+    "name": "NewMemeEvent",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
         "indexed": true,
         "internalType": "address",
         "name": "previousOwner",
@@ -280,6 +317,11 @@
         "internalType": "string",
         "name": "MemeUri",
         "type": "string"
+      },
+      {
+        "internalType": "uint256",
+        "name": "memeId",
+        "type": "uint256"
       }
     ],
     "name": "mint",

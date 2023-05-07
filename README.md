@@ -16,6 +16,6 @@
 
 [BrandContract](./docs/BrandContractDoc.md)  
 [TagContract](./docs/TagContractDoc.md)  
-[BrandFactoryContract](./docs/BrandFactoryContractDoc.md)   
+[BrandFactoryContract](./docs/BrandSetContractDoc.md)   
 [IPContract](./docs/IPContractDoc.md)   
 
