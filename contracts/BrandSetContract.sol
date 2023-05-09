@@ -23,11 +23,12 @@ Ownable,
 ERC721Burnable,
 ERC721Royalty
 {
+    //    TODO 将Util抽离出来并将通过constructor传入
+    //    TODO 使用proxy让合约可以升级
     using Counters for Counters.Counter;
     Counters.Counter private _tokenIdCounter;
 
     TagContract public tagContract;
-
 
     struct Brand {
         string name;
@@ -42,7 +43,10 @@ ERC721Royalty
 
     string public contractURI;
 
-    constructor(address tagContractAddress, string memory _contractURI) payable ERC721("Brand", "BRAND") {
+    constructor(address tagContractAddress, string memory _contractURI)
+    payable
+    ERC721("Brand", "BRAND")
+    {
         tagContract = TagContract(tagContractAddress);
         contractURI = _contractURI;
         _transferOwnership(tx.origin);
@@ -261,5 +265,4 @@ ERC721Royalty
 
         return messageHash;
     }
-
 }
