@@ -13,7 +13,6 @@ import "./TagContract.sol";
 import "./interfaces/IBrandContract.sol";
 import "@openzeppelin/contracts/utils/cryptography/SignatureChecker.sol";
 import "@openzeppelin/contracts/utils/Strings.sol";
-import ".deps\npm\@openzeppelin\contracts\utils\Strings.sol";
 
 // turn off revert strings
 contract BrandSetContract is
@@ -263,7 +262,4 @@ ERC721Royalty
         return messageHash;
     }
 
-    function contractURI() public view returns (string memory) {
-        return contractURI;
-    }
 }

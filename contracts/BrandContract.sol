@@ -241,8 +241,4 @@ ERC721Royalty
         return tokenIdToUri[tokenId];
     }
 
-
-    function contractURI() public view returns (string memory) {
-        return contractURI;
-    }
 }

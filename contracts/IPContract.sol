@@ -26,6 +26,8 @@ ERC721Royalty
 
     mapping(uint256 => string) tokenIdToUri;
 
+     string public contractURI;
+
     constructor(
         string memory _name,
         string memory _symbol,
@@ -144,7 +146,4 @@ ERC721Royalty
         return tokenIdToUri[tokenId];
     }
 
-    function contractURI() public view returns (string memory) {
-        return contractURI;
-    }
 }
