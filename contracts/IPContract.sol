@@ -31,10 +31,13 @@ ERC721Royalty
         string memory _symbol,
         string memory _logo,
         address _brandAddress,
-        address _creatorAddress
+        address _creatorAddress,
+        string memory _contractURI
     ) payable ERC721(_name, _symbol) {
         logo = _logo;
         brandAddress = _brandAddress;
+        contractURI = _contractURI;
+
         _transferOwnership(_creatorAddress);
         // 配置默认版税
         address[] memory payees = new address[](2);
@@ -139,5 +142,9 @@ ERC721Royalty
     returns (string memory)
     {
         return tokenIdToUri[tokenId];
+    }
+
+    function contractURI() public view returns (string memory) {
+        return contractURI;
     }
 }

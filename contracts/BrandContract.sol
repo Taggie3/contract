@@ -43,13 +43,16 @@ ERC721Royalty
     mapping(uint256 => string) tokenIdToUri;
     mapping(uint256 => IP) tokenIdToIP;
 
+    string public contractURI;
+
     constructor(
         string memory _name,
         string memory _symbol,
         string memory _logo,
         string memory _slogan,
         address _brandSetAddress,
-        TagContract.Tag[] memory _tags
+        TagContract.Tag[] memory _tags,
+        string memory _contractURI
     ) payable ERC721(_name, _symbol) {
         require(_tags.length > 0, "tags length must > 0");
         for (uint256 i = 0; i < _tags.length; i++) {
@@ -59,6 +62,7 @@ ERC721Royalty
         logo = _logo;
         slogan = _slogan;
         brandSetAddress = _brandSetAddress;
+        contractURI = _contractURI;
         _transferOwnership(tx.origin);
 
         // 配置默认版权分账
@@ -237,4 +241,8 @@ ERC721Royalty
         return tokenIdToUri[tokenId];
     }
 
+
+    function contractURI() public view returns (string memory) {
+        return contractURI;
+    }
 }

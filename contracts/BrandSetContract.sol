@@ -13,20 +13,22 @@ import "./TagContract.sol";
 import "./interfaces/IBrandContract.sol";
 import "@openzeppelin/contracts/utils/cryptography/SignatureChecker.sol";
 import "@openzeppelin/contracts/utils/Strings.sol";
+import ".deps\npm\@openzeppelin\contracts\utils\Strings.sol";
 
 // turn off revert strings
 contract BrandSetContract is
-    ERC721,
-    ERC721Enumerable,
-    Pausable,
-    Ownable,
-    ERC721Burnable,
-    ERC721Royalty
+ERC721,
+ERC721Enumerable,
+Pausable,
+Ownable,
+ERC721Burnable,
+ERC721Royalty
 {
     using Counters for Counters.Counter;
     Counters.Counter private _tokenIdCounter;
 
     TagContract public tagContract;
+
 
     struct Brand {
         string name;
@@ -39,8 +41,11 @@ contract BrandSetContract is
     mapping(uint256 => string) tokenIdToUri;
     mapping(uint256 => Brand) tokenIdToBrand;
 
-    constructor(address tagContractAddress) payable ERC721("Brand", "BRAND") {
+    string public contractURI;
+
+    constructor(address tagContractAddress, string memory _contractURI) payable ERC721("Brand", "BRAND") {
         tagContract = TagContract(tagContractAddress);
+        contractURI = _contractURI;
         _transferOwnership(tx.origin);
 
         address[] memory payees = new address[](2);
@@ -49,7 +54,7 @@ contract BrandSetContract is
         uint256[] memory shares = new uint256[](2);
         shares[0] = 200;
         shares[1] = 50;
-        PaymentSplitter paymentSplitter = new PaymentSplitter{value: msg.value}(
+        PaymentSplitter paymentSplitter = new PaymentSplitter{value : msg.value}(
             payees,
             shares
         );
@@ -59,9 +64,9 @@ contract BrandSetContract is
     }
 
     function changeTagContract(address tagContractAddress)
-        public
-        onlyOwner
-        whenNotPaused
+    public
+    onlyOwner
+    whenNotPaused
     {
         tagContract = TagContract(tagContractAddress);
     }
@@ -123,7 +128,7 @@ contract BrandSetContract is
             shares[1] = 100;
             shares[2] = 50;
             PaymentSplitter paymentSplitter = new PaymentSplitter{
-                value: msg.value
+            value : msg.value
             }(payees, shares);
             address splitterAddress = address(paymentSplitter);
             _setTokenRoyalty(tokenId, splitterAddress, 250);
@@ -173,7 +178,7 @@ contract BrandSetContract is
     function withdraw() public onlyOwner {
         address _owner = owner();
         uint256 amount = address(this).balance;
-        (bool sent, ) = _owner.call{value: amount}("");
+        (bool sent,) = _owner.call{value : amount}("");
         require(sent, "Failed to send Ether");
     }
 
@@ -201,29 +206,29 @@ contract BrandSetContract is
     }
 
     function supportsInterface(bytes4 interfaceId)
-        public
-        view
-        virtual
-        override(ERC721, ERC721Enumerable, ERC721Royalty)
-        returns (bool)
+    public
+    view
+    virtual
+    override(ERC721, ERC721Enumerable, ERC721Royalty)
+    returns (bool)
     {
         return super.supportsInterface(interfaceId);
     }
 
     function _burn(uint256 tokenId)
-        internal
-        virtual
-        override(ERC721, ERC721Royalty)
+    internal
+    virtual
+    override(ERC721, ERC721Royalty)
     {
         return super._burn(tokenId);
     }
 
     function tokenURI(uint256 tokenId)
-        public
-        view
-        virtual
-        override
-        returns (string memory)
+    public
+    view
+    virtual
+    override
+    returns (string memory)
     {
         return tokenIdToUri[tokenId];
     }
@@ -235,17 +240,17 @@ contract BrandSetContract is
     ) public view returns (bool) {
         bytes32 messageHash = getMessageHash(message);
         return
-            SignatureChecker.isValidSignatureNow(
-                signer,
-                messageHash,
-                signature
-            );
+        SignatureChecker.isValidSignatureNow(
+            signer,
+            messageHash,
+            signature
+        );
     }
 
     function getMessageHash(string memory message)
-        public
-        pure
-        returns (bytes32)
+    public
+    pure
+    returns (bytes32)
     {
         bytes32 messageHash = keccak256(
             abi.encodePacked(
@@ -256,5 +261,9 @@ contract BrandSetContract is
         );
 
         return messageHash;
+    }
+
+    function contractURI() public view returns (string memory) {
+        return contractURI;
     }
 }
