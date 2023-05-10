@@ -1,26 +1,19 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.12;
 
-import "@openzeppelin/contracts/security/Pausable.sol";
-import "@openzeppelin/contracts/access/Ownable.sol";
-import "@openzeppelin/contracts/utils/Counters.sol";
+import "@openzeppelin/contracts-upgradeable/security/PausableUpgradeable.sol";
+import "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
+import "@openzeppelin/contracts-upgradeable/utils/CountersUpgradeable.sol";
 
-contract TagContract is Pausable, Ownable {
-    using Counters for Counters.Counter;
-    Counters.Counter private _tokenIdCounter;
-
-    struct Tag {
-        uint256 tokenId;
-        string types;
-        //tag的内容
-        string value;
-    }
+contract TagContract is PausableUpgradeable, OwnableUpgradeable {
+    using CountersUpgradeable for CountersUpgradeable.Counter;
+    CountersUpgradeable.Counter private _tokenIdCounter;
 
     Tag[] public tags;
 
     function mint(string memory _tagTypes, string memory _tagValue)
-        public
-        whenNotPaused
+    public
+    whenNotPaused
     {
         //校验tagString是否已经被mint过了
         for (uint256 i = 0; i < tags.length; i++) {
@@ -54,7 +47,7 @@ contract TagContract is Pausable, Ownable {
     function withdraw() public onlyOwner {
         address _owner = owner();
         uint256 amount = address(this).balance;
-        (bool sent, ) = _owner.call{value: amount}("");
+        (bool sent,) = _owner.call{value : amount}("");
         require(sent, "Failed to send Ether");
     }
 
@@ -67,4 +60,13 @@ contract TagContract is Pausable, Ownable {
     }
 
     event NewTagEvent(uint256 tokenId, string types, string value);
+
+    struct Tag {
+        uint256 tokenId;
+        string types;
+        //tag的内容
+        string value;
+    }
 }
+
+

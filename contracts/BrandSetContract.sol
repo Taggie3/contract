@@ -1,40 +1,31 @@
 //SPDX-License-Identifier: Unlicense
 pragma solidity ^0.8.12;
 
-import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
-import "@openzeppelin/contracts/token/ERC721/extensions/ERC721Enumerable.sol";
-import "@openzeppelin/contracts/security/Pausable.sol";
-import "@openzeppelin/contracts/access/Ownable.sol";
-import "@openzeppelin/contracts/token/ERC721/extensions/ERC721Burnable.sol";
-import "@openzeppelin/contracts/utils/Counters.sol";
-import "@openzeppelin/contracts/token/ERC721/extensions/ERC721Royalty.sol";
+import "@openzeppelin/contracts-upgradeable/token/ERC721/ERC721Upgradeable.sol";
+import "@openzeppelin/contracts-upgradeable/token/ERC721/extensions/ERC721EnumerableUpgradeable.sol";
+import "@openzeppelin/contracts-upgradeable/security/PausableUpgradeable.sol";
+import "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
+import "@openzeppelin/contracts-upgradeable/token/ERC721/extensions/ERC721BurnableUpgradeable.sol";
+import "@openzeppelin/contracts-upgradeable/utils/CountersUpgradeable.sol";
+import "@openzeppelin/contracts-upgradeable/token/ERC721/extensions/ERC721RoyaltyUpgradeable.sol";
 import "@openzeppelin/contracts/finance/PaymentSplitter.sol";
 import "./TagContract.sol";
 import "./interfaces/IBrandContract.sol";
-import "@openzeppelin/contracts/utils/cryptography/SignatureChecker.sol";
-import "@openzeppelin/contracts/utils/Strings.sol";
+import "./interfaces/IBrandUtil.sol";
 
 // turn off revert strings
 contract BrandSetContract is
-ERC721,
-ERC721Enumerable,
-Pausable,
-Ownable,
-ERC721Burnable,
-ERC721Royalty
+ERC721Upgradeable,
+ERC721EnumerableUpgradeable,
+PausableUpgradeable,
+OwnableUpgradeable,
+ERC721BurnableUpgradeable,
+ERC721RoyaltyUpgradeable
 {
-    //    TODO 将Util抽离出来并将通过constructor传入
-    //    TODO 使用proxy让合约可以升级
-    using Counters for Counters.Counter;
-    Counters.Counter private _tokenIdCounter;
+    using CountersUpgradeable for CountersUpgradeable.Counter;
+    CountersUpgradeable.Counter private _tokenIdCounter;
 
     TagContract public tagContract;
-
-    struct Brand {
-        string name;
-        string symbol;
-        address brandAddress;
-    }
 
     Brand[] public brands;
 
@@ -43,24 +34,20 @@ ERC721Royalty
 
     string public contractURI;
 
-    constructor(address tagContractAddress, string memory _contractURI)
-    payable
-    ERC721("Brand", "BRAND")
-    {
-        tagContract = TagContract(tagContractAddress);
+    IBrandUtil public brandUtil;
+
+    function initialize(
+        TagContract _tagContract,
+        string memory _contractURI,
+        IBrandUtil _brandUtil
+    ) initializer public {
+        __ERC721_init("Brand", "BRAND");
+        tagContract = _tagContract;
         contractURI = _contractURI;
+        brandUtil = _brandUtil;
         _transferOwnership(tx.origin);
 
-        address[] memory payees = new address[](2);
-        payees[0] = tx.origin;
-        payees[1] = address(0xC8D64fdCA7DE05204b19cA62151fC4cd50Bcd106);
-        uint256[] memory shares = new uint256[](2);
-        shares[0] = 200;
-        shares[1] = 50;
-        PaymentSplitter paymentSplitter = new PaymentSplitter{value : msg.value}(
-            payees,
-            shares
-        );
+        PaymentSplitter paymentSplitter = brandUtil.getDefaultSplitter();
         address splitterAddress = address(paymentSplitter);
 
         _setDefaultRoyalty(splitterAddress, 250);
@@ -77,9 +64,9 @@ ERC721Royalty
     function mint(
         string memory brandUri,
         bytes memory signature,
-        address brandContractAddress
-    ) public payable whenNotPaused {
-        IBrandContract brandContract = IBrandContract(brandContractAddress);
+        IBrandContract _brandContract
+    ) public whenNotPaused {
+        IBrandContract brandContract = _brandContract;
 
         require(
             address(this) == brandContract.brandSetAddress(),
@@ -90,10 +77,9 @@ ERC721Royalty
         string memory brandSymbol = brandContract.symbol();
 
         require(
-            this.checkValidSignature(signature, brandName, this.owner()),
+            brandUtil.checkValidSignature(signature, brandName, this.owner()),
             "InvalidSignature"
         );
-        address brandOwner = brandContract.owner();
         // 检查brand是否已存在
         for (uint256 i = 0; i < brands.length; i++) {
             Brand memory brand = brands[i];
@@ -121,42 +107,24 @@ ERC721Royalty
         tokenIdToUri[tokenId] = brandUri;
 
         //   nft交易版税1%给owner，1%给creator，0.5%给平台.通过splitter处理
-        if (super.owner() != brandOwner) {
-            address[] memory payees = new address[](3);
-            payees[0] = tx.origin;
-            payees[1] = brandOwner;
-            payees[2] = address(0xC8D64fdCA7DE05204b19cA62151fC4cd50Bcd106);
-            uint256[] memory shares = new uint256[](3);
-            shares[0] = 100;
-            shares[1] = 100;
-            shares[2] = 50;
-            PaymentSplitter paymentSplitter = new PaymentSplitter{
-            value : msg.value
-            }(payees, shares);
-            address splitterAddress = address(paymentSplitter);
-            _setTokenRoyalty(tokenId, splitterAddress, 250);
-        }
 
-        Brand memory newBrand = Brand(
-            brandName,
-            brandSymbol,
-            brandContractAddress
+        PaymentSplitter paymentSplitter = brandUtil.getSplitter(
+            this.owner(),
+            brandContract.owner()
         );
+        _setTokenRoyalty(tokenId, address(paymentSplitter), 250);
+
+        Brand memory newBrand = Brand(brandName, brandSymbol, brandContract);
         brands.push(newBrand);
         tokenIdToBrand[tokenId] = newBrand;
 
-        emit NewBrandEvent(
-            tokenId,
-            brandName,
-            brandContractAddress,
-            msg.sender
-        );
+        emit NewBrandEvent(tokenId, brandName, brandContract, msg.sender);
     }
 
     event NewBrandEvent(
         uint256 tokenId,
         string brandName,
-        address brandContractAddress,
+        IBrandContract brandContract,
         address brandOwner
     );
 
@@ -169,9 +137,9 @@ ERC721Royalty
         address to,
         uint256 firstTokenId,
         uint256 batchSize
-    ) internal virtual override(ERC721) {
-        address brandAddress = tokenIdToBrand[firstTokenId].brandAddress;
-        IBrandContract brandContract = IBrandContract(brandAddress);
+    ) internal virtual override(ERC721Upgradeable) {
+        IBrandContract brandContract = tokenIdToBrand[firstTokenId]
+        .brandContract;
         brandContract.transferOwnership(to);
     }
 
@@ -204,7 +172,7 @@ ERC721Royalty
         address to,
         uint256 tokenId,
         uint256 batchSize
-    ) internal override(ERC721, ERC721Enumerable) whenNotPaused {
+    ) internal override(ERC721Upgradeable, ERC721EnumerableUpgradeable) whenNotPaused {
         super._beforeTokenTransfer(from, to, tokenId, batchSize);
     }
 
@@ -212,7 +180,7 @@ ERC721Royalty
     public
     view
     virtual
-    override(ERC721, ERC721Enumerable, ERC721Royalty)
+    override(ERC721Upgradeable, ERC721EnumerableUpgradeable, ERC721RoyaltyUpgradeable)
     returns (bool)
     {
         return super.supportsInterface(interfaceId);
@@ -221,7 +189,7 @@ ERC721Royalty
     function _burn(uint256 tokenId)
     internal
     virtual
-    override(ERC721, ERC721Royalty)
+    override(ERC721Upgradeable, ERC721RoyaltyUpgradeable)
     {
         return super._burn(tokenId);
     }
@@ -235,34 +203,10 @@ ERC721Royalty
     {
         return tokenIdToUri[tokenId];
     }
+}
 
-    function checkValidSignature(
-        bytes memory signature,
-        string memory message,
-        address signer
-    ) public view returns (bool) {
-        bytes32 messageHash = getMessageHash(message);
-        return
-        SignatureChecker.isValidSignatureNow(
-            signer,
-            messageHash,
-            signature
-        );
-    }
-
-    function getMessageHash(string memory message)
-    public
-    pure
-    returns (bytes32)
-    {
-        bytes32 messageHash = keccak256(
-            abi.encodePacked(
-                "\x19Ethereum Signed Message:\n",
-                Strings.toString(bytes(message).length),
-                bytes(message)
-            )
-        );
-
-        return messageHash;
-    }
+struct Brand {
+    string name;
+    string symbol;
+    IBrandContract brandContract;
 }

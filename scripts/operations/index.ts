@@ -62,16 +62,16 @@ async function main() {
   const signers = await hre.ethers.getSigners();
 
   const _brand3Factory = await hre.ethers.getContractFactory('Brand3Factory');
-  const brand3Factory = await _brand3Factory.attach(res.Brand3Factory);
+  const brand3Factory = await _brand3Factory.attach(res.TagContract);
 
   const _brand3Tag = await hre.ethers.getContractFactory('Brand3Tag');
-  const brand3Tag = await _brand3Tag.attach(res.Brand3Tag);
+  const brand3Tag = await _brand3Tag.attach(res.BrandSetContract);
 
   const _RoyaltySplitter = await hre.ethers.getContractFactory('RoyaltySplitter');
-  const RoyaltySplitter = await _RoyaltySplitter.attach(res.RoyaltySplitter);
+  const RoyaltySplitter = await _RoyaltySplitter.attach(res.BrandContract);
 
   const _whitelist = await hre.ethers.getContractFactory('Whitelist');
-  const whitelist = await _whitelist.attach(res.Whitelist);
+  const whitelist = await _whitelist.attach(res.IPContract);
 
   let currentSigner = await signers[0];
   const choices = ['Create a New Brand', 'Get Brand Owner', 'Get Brand3 Slogan', 'Exit', 'Create a New NFT'];

@@ -1,71 +1,100 @@
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
-const hre = require('hardhat');
-const { ethers, upgrades } = require('hardhat');
+import {Signer} from "ethers";
+
+const {ethers, upgrades} = require("hardhat");
 import * as fs from 'fs-extra';
 
+require("dotenv").config({path: ".env"});
+
+const SERVER_HOST = process.env.SERVER_HOST;
+const GAS_LIMIT = 3000000;
+
 export type DeployedContracts = {
-  Brand3Slogan: string;
-  Brand3Tag: string;
-  RoyaltySplitter: string;
-  Whitelist: string;
-  Brand3Factory: string;
+    BrandUtil: string;
+    BrandSetContract: string;
+    BrandContract: string;
+    IPContract: string;
+    TagContract: string;
 };
 
 async function main() {
-  let res: DeployedContracts = {
-    Brand3Slogan: '',
-    Brand3Tag: '',
-    RoyaltySplitter: '',
-    Whitelist: '',
-    Brand3Factory: '',
-  };
+    let res: DeployedContracts = {
+        BrandUtil: '',
+        BrandSetContract: '',
+        BrandContract: '',
+        IPContract: '',
+        TagContract: '',
+    };
 
-  let singers = await hre.ethers.getSigners();
+    const BrandUtil = await ethers.getContractFactory('BrandUtil');
+    const brandUtil = await upgrades.deployProxy(BrandUtil);
+    await brandUtil.deployed();
+    console.log("brandUtil deployed to:", brandUtil.address);
+    const brandUtilAddress = brandUtil.address;
 
-  // WhiteLists
-  const whitelistCount = 100;
-  const whitelistContract = await hre.ethers.getContractFactory('Whitelist');
-  const deployedWhitelistContractContract = await whitelistContract.deploy(whitelistCount);
-  console.log('Whitelist Contract Address:', deployedWhitelistContractContract.address);
+    const TagContract = await ethers.getContractFactory('TagContract');
+    const tagContract = await upgrades.deployProxy(TagContract);
+    await tagContract.deployed();
+    console.log("tagContract deployed to:", tagContract.address);
+    const tagContractAddress = tagContract.address;
 
-  const tagContract = await hre.ethers.getContractFactory('Brand3Tag');
-  const deployedTagContract = await tagContract.deploy();
-  console.log('Tag Contract Address:', deployedTagContract.address);
+    await tagContract.mint('test', 'test');
 
-  const factoryContract = await hre.ethers.getContractFactory('Brand3Factory');
-  const deployedFactoryContract = await factoryContract.deploy();
-  console.log('Factory Contract Address:', deployedFactoryContract.address);
+    const brandSetContractUri = SERVER_HOST + 'metadata/contract/brandSet';
+    const BrandSetContract = await ethers.getContractFactory('BrandSetContract');
+    const brandSetContract = await upgrades.deployProxy(BrandSetContract,
+        [tagContractAddress, brandSetContractUri, brandUtilAddress]);
+    await brandSetContract.deployed();
+    console.log("brandSetContract deployed to:", brandSetContract.address);
+    const brandSetAddress = brandSetContract.address;
 
-  // const metadataURI = "https://test_metadata.com";
-  // const logoURI = "https://test_logo.com";
-  // const signature = "0x123456"
-  // const sloganName = "sloganName";
-  // const sloganSymbol = "sloganSymbol";
-  // const sloganContract = await hre.ethers.getContractFactory("Brand3Slogan");
-  // const deployedSloganContract = await sloganContract.deploy(metadataURI, sloganName, sloganSymbol, logoURI);
-  // console.log("Slogan Contract Address:", deployedSloganContract.address);
+    const brandName = 'BrandName';
+    const brandSymbol = 'BrandSymbol';
+    const brandLogo = 'BrandLogo';
+    const brandSlogan = 'BrandSlogan';
+    const tags = [[0, 'test', 'test']];
+    const brandContractUri = SERVER_HOST + 'metadata/contract/brand/1';
+    const BrandContract = await ethers.getContractFactory('BrandContract');
+    const brandContract = await upgrades.deployProxy(BrandContract,
+        [brandName, brandSymbol, brandLogo, brandSlogan, brandSetAddress, tags, brandContractUri, brandUtilAddress]);
+    await brandContract.deployed();
+    console.log("brandContract deployed to:", brandContract.address);
+    const brandAddress = brandContract.address;
 
-  const payees = [
-    '0xC8D64fdCA7DE05204b19cA62151fC4cd50Bcd106',
-    '0x9c01bfc31C2D809b252422393e461dcaB841C8DA',
-    '0x34A3704A224D0574aAe7fcAa049324Dc43a6d0b5',
-  ];
-  const shares = [40, 40, 20];
-  const splitterContract = await hre.ethers.getContractFactory('RoyaltySplitter');
-  const deployedSplitterContract = await splitterContract.deploy(payees, shares);
-  console.log('Splitter Contract Address:', deployedSplitterContract.address);
+    const provider = ethers.provider;
+    const signer: Signer = await provider.getSigner();
 
-  res.Brand3Factory = deployedFactoryContract.address;
-  res.Brand3Tag = deployedTagContract.address;
-  res.RoyaltySplitter = deployedSplitterContract.address;
-  res.Whitelist = deployedWhitelistContractContract.address;
+    const signature = await signer.signMessage(brandName);
+    console.log(signature);
+    const response = await brandSetContract.mint('test', signature, brandAddress);
+    console.log(response);
 
-  fs.writeFileSync('./.env.json', JSON.stringify(res, null, 2));
+    const ipName = 'IPName';
+    const ipSymbol = 'IPSymbol';
+    const ipLogo = 'IPLogo';
+    const creator = '0xC8D64fdCA7DE05204b19cA62151fC4cd50Bcd106';
+    const ipContractUri = SERVER_HOST + 'metadata/contract/ip/1';
+    const IPContract = await ethers.getContractFactory('IPContract');
+    const ipContract = await upgrades.deployProxy(IPContract,
+        [ipName, ipSymbol, ipLogo, brandAddress, creator, ipContractUri, brandUtilAddress]);
+    await ipContract.deployed();
+    console.log("ipContract deployed to:", ipContract.address);
+
+    await brandContract.mint('test', ipContract.address);
+
+
+    res.BrandUtil = brandUtilAddress
+    res.BrandSetContract = brandSetAddress
+    res.BrandContract = brandAddress
+    res.IPContract = ipContract.address
+    res.TagContract = tagContractAddress
+
+    fs.writeFileSync('./deployedContract.json', JSON.stringify(res, null, 2));
 }
 
 main()
-  .then(() => process.exit(0))
-  .catch(error => {
-    console.error(error);
-    process.exit(1);
-  });
+    .then(() => process.exit(0))
+    .catch(error => {
+        console.error(error);
+        process.exit(1);
+    });
