@@ -26,6 +26,9 @@ describe("TagContract", function () {
         // await brandContract.deployed();
         // console.log("brandContract deployed to:", brandContract.address);
 
+        // 0x2cc23f074ec0d40421d95b58b67d667120d0a3d4f8feba6c7c5ff88d1ec3a4cb18b3e15bac816bb53a075d045632703600c4ee7ef31ff6fdc237362c8b76fd721c
+        // [[0,"test","test"]]
+
         const provider = ethers.provider;
         const signer: Signer = await provider.getSigner();
 

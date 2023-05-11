@@ -13,12 +13,12 @@ import "@openzeppelin/contracts/finance/PaymentSplitter.sol";
 import "./interfaces/IBrandUtil.sol";
 
 contract IPContract is
-ERC721Upgradeable,
-ERC721EnumerableUpgradeable,
-PausableUpgradeable,
-OwnableUpgradeable,
-ERC721BurnableUpgradeable,
-ERC721RoyaltyUpgradeable
+    ERC721Upgradeable,
+    ERC721EnumerableUpgradeable,
+    PausableUpgradeable,
+    OwnableUpgradeable,
+    ERC721BurnableUpgradeable,
+    ERC721RoyaltyUpgradeable
 {
     using CountersUpgradeable for CountersUpgradeable.Counter;
     CountersUpgradeable.Counter private _tokenIdCounter;
@@ -39,7 +39,7 @@ ERC721RoyaltyUpgradeable
         address _creatorAddress,
         string memory _contractURI,
         IBrandUtil _brandUtil
-    ) initializer public {
+    ) public initializer {
         __ERC721_init(_name, _symbol);
         logo = _logo;
         brandAddress = _brandAddress;
@@ -54,17 +54,25 @@ ERC721RoyaltyUpgradeable
         _setDefaultRoyalty(splitterAddress, 250);
     }
 
-    function mint(address creator, string memory MemeUri, uint256 memeId)
-    public
-    whenNotPaused
-    onlyOwner
-    {
+    function mint(
+        address creator,
+        string memory MemeUri,
+        uint256 memeId
+    ) public whenNotPaused onlyOwner {
         //更新tokenId
         uint256 tokenId = _tokenIdCounter.current();
         _tokenIdCounter.increment();
 
-        _safeMint(creator, tokenId);
+        emit NewMemeEvent(
+            tokenId,
+            memeId,
+            address(this),
+            brandAddress,
+            creator
+        );
+
         tokenIdToUri[tokenId] = MemeUri;
+        _safeMint(creator, tokenId);
 
         //   nft交易版税1%给owner，1%给creator，0.5%给平台.通过splitter处理
 
@@ -74,15 +82,6 @@ ERC721RoyaltyUpgradeable
         );
         address splitterAddress = address(paymentSplitter);
         _setTokenRoyalty(tokenId, splitterAddress, 250);
-
-
-        emit NewMemeEvent(
-            tokenId,
-            memeId,
-            address(this),
-            brandAddress,
-            creator
-        );
     }
 
     // events
@@ -98,41 +97,70 @@ ERC721RoyaltyUpgradeable
         logo = _logo;
     }
 
+    function transferOwnership(address newOwner)
+        public
+        virtual
+        override
+        onlyOwnerOrigin
+    {
+        require(
+            newOwner != address(0),
+            "Ownable: new owner is the zero address"
+        );
+        _transferOwnership(newOwner);
+    }
+
     function _beforeTokenTransfer(
         address from,
         address to,
         uint256 tokenId,
         uint256 batchSize
-    ) internal override(ERC721Upgradeable, ERC721EnumerableUpgradeable) whenNotPaused {
+    )
+        internal
+        override(ERC721Upgradeable, ERC721EnumerableUpgradeable)
+        whenNotPaused
+    {
         super._beforeTokenTransfer(from, to, tokenId, batchSize);
     }
 
     function supportsInterface(bytes4 interfaceId)
-    public
-    view
-    virtual
-    override(ERC721Upgradeable, ERC721EnumerableUpgradeable, ERC721RoyaltyUpgradeable)
-    returns (bool)
+        public
+        view
+        virtual
+        override(
+            ERC721Upgradeable,
+            ERC721EnumerableUpgradeable,
+            ERC721RoyaltyUpgradeable
+        )
+        returns (bool)
     {
         return super.supportsInterface(interfaceId);
     }
 
     function _burn(uint256 tokenId)
-    internal
-    virtual
-    override(ERC721Upgradeable, ERC721RoyaltyUpgradeable)
+        internal
+        virtual
+        override(ERC721Upgradeable, ERC721RoyaltyUpgradeable)
     {
         return super._burn(tokenId);
     }
 
     function tokenURI(uint256 tokenId)
-    public
-    view
-    virtual
-    override
-    returns (string memory)
+        public
+        view
+        virtual
+        override
+        returns (string memory)
     {
         return tokenIdToUri[tokenId];
     }
 
+    modifier onlyOwnerOrigin() {
+        _checkOwnerOrigin();
+        _;
+    }
+
+    function _checkOwnerOrigin() internal view virtual {
+        require(owner() == tx.origin, "Ownable: caller is not the owner");
+    }
 }

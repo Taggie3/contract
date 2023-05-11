@@ -12,7 +12,7 @@ interface IBrandContract {
 
     function owner() external view returns (address);
 
-    function tags() external view returns (TagContract.Tag[] memory);
+    function listTags() external view returns (TagContract.Tag[] memory);
 
     function transferOwnership(address newOwner) external;
 }

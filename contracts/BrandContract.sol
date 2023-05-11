@@ -73,14 +73,12 @@ contract BrandContract is
     }
 
     // mint数量不限制，只能由owner进行mint，在mint指定splitter地址为版税受益人
-    function mint(string memory ipUri, address ipContractAddress)
+    function mint(string memory ipUri, IIPContract ipContract)
         public
-        payable
         whenNotPaused
         onlyOwner
     {
         // 检查ip合约
-        IIPContract ipContract = IIPContract(ipContractAddress);
         require(
             address(this) == ipContract.brandAddress(),
             "brandAddress error"
@@ -92,7 +90,7 @@ contract BrandContract is
         // 检查IP是否已存在
         for (uint256 i = 0; i < ips.length; i++) {
             IP memory ip = ips[i];
-            require(ip.ipAddress != ipContractAddress, "IP address existed");
+            require(ip.ipContract != ipContract, "IP address existed");
             require(
                 keccak256(bytes(ip.name)) != keccak256(bytes(ipName)),
                 "IP name existed"
@@ -103,34 +101,30 @@ contract BrandContract is
         uint256 tokenId = _tokenIdCounter.current();
         _tokenIdCounter.increment();
 
-        _safeMint(ipOwner, tokenId);
+        // 抛出新建IP事件
+        emit NewIPEvent(
+            tokenId,
+            ipName,
+            address(ipContract),
+            address(this),
+            ipOwner
+        );
+
+        // 新建IP
+        IP memory newIP = IP(ipName, ipSymbol, ipContract);
+        ips.push(newIP);
+        tokenIdToIP[tokenId] = newIP;
+
         tokenIdToUri[tokenId] = ipUri;
-
+        _safeMint(ipOwner, tokenId);
         //   nft交易版税1%给owner，1%给creator，0.5%给平台.通过splitter处理
-
         PaymentSplitter paymentSplitter = brandUtil.getSplitter(
             this.owner(),
             ipOwner
         );
         address splitterAddress = address(paymentSplitter);
         _setTokenRoyalty(tokenId, splitterAddress, 250);
-
-        // 新建IP
-        IP memory newIP = IP(ipName, ipSymbol, ipContractAddress);
-        ips.push(newIP);
-        tokenIdToIP[tokenId] = newIP;
-
-        // 抛出新建IP事件
-        emit NewIPEvent(
-            tokenId,
-            ipName,
-            ipContractAddress,
-            address(this),
-            ipOwner
-        );
     }
-
-    //   slogan交易2.5%给到平台，通过交易平台处理
 
     // events
     event NewIPEvent(
@@ -153,14 +147,26 @@ contract BrandContract is
         return ips;
     }
 
+    function transferOwnership(address newOwner)
+        public
+        virtual
+        override
+        onlyOwnerOrigin
+    {
+        require(
+            newOwner != address(0),
+            "Ownable: new owner is the zero address"
+        );
+        _transferOwnership(newOwner);
+    }
+
     function _afterTokenTransfer(
         address from,
         address to,
         uint256 firstTokenId,
         uint256 batchSize
     ) internal virtual override(ERC721Upgradeable) {
-        address ipAddress = tokenIdToIP[firstTokenId].ipAddress;
-        IIPContract ipContract = IIPContract(ipAddress);
+        IIPContract ipContract = tokenIdToIP[firstTokenId].ipContract;
         ipContract.transferOwnership(to);
     }
 
@@ -232,10 +238,19 @@ contract BrandContract is
     {
         return tokenIdToUri[tokenId];
     }
+
+    modifier onlyOwnerOrigin() {
+        _checkOwnerOrigin();
+        _;
+    }
+
+    function _checkOwnerOrigin() internal view virtual {
+        require(owner() == tx.origin, "Ownable: caller is not the owner");
+    }
 }
 
 struct IP {
     string name;
     string symbol;
-    address ipAddress;
+    IIPContract ipContract;
 }

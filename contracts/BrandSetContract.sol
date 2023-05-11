@@ -15,12 +15,12 @@ import "./interfaces/IBrandUtil.sol";
 
 // turn off revert strings
 contract BrandSetContract is
-ERC721Upgradeable,
-ERC721EnumerableUpgradeable,
-PausableUpgradeable,
-OwnableUpgradeable,
-ERC721BurnableUpgradeable,
-ERC721RoyaltyUpgradeable
+    ERC721Upgradeable,
+    ERC721EnumerableUpgradeable,
+    PausableUpgradeable,
+    OwnableUpgradeable,
+    ERC721BurnableUpgradeable,
+    ERC721RoyaltyUpgradeable
 {
     using CountersUpgradeable for CountersUpgradeable.Counter;
     CountersUpgradeable.Counter private _tokenIdCounter;
@@ -40,7 +40,7 @@ ERC721RoyaltyUpgradeable
         TagContract _tagContract,
         string memory _contractURI,
         IBrandUtil _brandUtil
-    ) initializer public {
+    ) public initializer {
         __ERC721_init("Brand", "BRAND");
         tagContract = _tagContract;
         contractURI = _contractURI;
@@ -54,9 +54,9 @@ ERC721RoyaltyUpgradeable
     }
 
     function changeTagContract(address tagContractAddress)
-    public
-    onlyOwner
-    whenNotPaused
+        public
+        onlyOwner
+        whenNotPaused
     {
         tagContract = TagContract(tagContractAddress);
     }
@@ -67,6 +67,10 @@ ERC721RoyaltyUpgradeable
         IBrandContract _brandContract
     ) public whenNotPaused {
         IBrandContract brandContract = _brandContract;
+        //更新tokenId
+
+        uint256 tokenId = _tokenIdCounter.current();
+        _tokenIdCounter.increment();
 
         require(
             address(this) == brandContract.brandSetAddress(),
@@ -88,8 +92,8 @@ ERC721RoyaltyUpgradeable
                 "brand name existed"
             );
         }
-        //        检查tag是否合法
-        TagContract.Tag[] memory tags = brandContract.tags();
+        //    检查tag是否合法
+        TagContract.Tag[] memory tags = brandContract.listTags();
         for (uint256 i = 0; i < tags.length; i++) {
             TagContract.Tag memory tag = tags[i];
             TagContract.Tag memory existTag = tagContract.getTag(tag.tokenId);
@@ -99,32 +103,29 @@ ERC721RoyaltyUpgradeable
             );
         }
 
-        //更新tokenId
-        uint256 tokenId = _tokenIdCounter.current();
-        _tokenIdCounter.increment();
-
-        _safeMint(msg.sender, tokenId);
+        emit NewBrandEvent(
+            tokenId,
+            brandName,
+            address(brandContract),
+            msg.sender
+        );
         tokenIdToUri[tokenId] = brandUri;
 
-        //   nft交易版税1%给owner，1%给creator，0.5%给平台.通过splitter处理
-
+        Brand memory newBrand = Brand(brandName, brandSymbol, brandContract);
+        brands.push(newBrand);
+        tokenIdToBrand[tokenId] = newBrand;
+        _safeMint(msg.sender, tokenId);
         PaymentSplitter paymentSplitter = brandUtil.getSplitter(
             this.owner(),
             brandContract.owner()
         );
         _setTokenRoyalty(tokenId, address(paymentSplitter), 250);
-
-        Brand memory newBrand = Brand(brandName, brandSymbol, brandContract);
-        brands.push(newBrand);
-        tokenIdToBrand[tokenId] = newBrand;
-
-        emit NewBrandEvent(tokenId, brandName, brandContract, msg.sender);
     }
 
     event NewBrandEvent(
         uint256 tokenId,
         string brandName,
-        IBrandContract brandContract,
+        address brandContract,
         address brandOwner
     );
 
@@ -139,7 +140,7 @@ ERC721RoyaltyUpgradeable
         uint256 batchSize
     ) internal virtual override(ERC721Upgradeable) {
         IBrandContract brandContract = tokenIdToBrand[firstTokenId]
-        .brandContract;
+            .brandContract;
         brandContract.transferOwnership(to);
     }
 
@@ -149,7 +150,7 @@ ERC721RoyaltyUpgradeable
     function withdraw() public onlyOwner {
         address _owner = owner();
         uint256 amount = address(this).balance;
-        (bool sent,) = _owner.call{value : amount}("");
+        (bool sent, ) = _owner.call{value: amount}("");
         require(sent, "Failed to send Ether");
     }
 
@@ -172,34 +173,42 @@ ERC721RoyaltyUpgradeable
         address to,
         uint256 tokenId,
         uint256 batchSize
-    ) internal override(ERC721Upgradeable, ERC721EnumerableUpgradeable) whenNotPaused {
+    )
+        internal
+        override(ERC721Upgradeable, ERC721EnumerableUpgradeable)
+        whenNotPaused
+    {
         super._beforeTokenTransfer(from, to, tokenId, batchSize);
     }
 
     function supportsInterface(bytes4 interfaceId)
-    public
-    view
-    virtual
-    override(ERC721Upgradeable, ERC721EnumerableUpgradeable, ERC721RoyaltyUpgradeable)
-    returns (bool)
+        public
+        view
+        virtual
+        override(
+            ERC721Upgradeable,
+            ERC721EnumerableUpgradeable,
+            ERC721RoyaltyUpgradeable
+        )
+        returns (bool)
     {
         return super.supportsInterface(interfaceId);
     }
 
     function _burn(uint256 tokenId)
-    internal
-    virtual
-    override(ERC721Upgradeable, ERC721RoyaltyUpgradeable)
+        internal
+        virtual
+        override(ERC721Upgradeable, ERC721RoyaltyUpgradeable)
     {
         return super._burn(tokenId);
     }
 
     function tokenURI(uint256 tokenId)
-    public
-    view
-    virtual
-    override
-    returns (string memory)
+        public
+        view
+        virtual
+        override
+        returns (string memory)
     {
         return tokenIdToUri[tokenId];
     }
