@@ -53,7 +53,7 @@ async function main() {
     const brandLogo = 'BrandLogo';
     const brandSlogan = 'BrandSlogan';
     const tags = [[0, 'test', 'test']];
-    const brandContractUri = SERVER_HOST + 'metadata/contract/brand/1';
+    const brandContractUri = SERVER_HOST + '/metadata/contract/brand/1';
     const BrandContract = await ethers.getContractFactory('BrandContract');
     const brandContract = await upgrades.deployProxy(BrandContract,
         [brandName, brandSymbol, brandLogo, brandSlogan, brandSetAddress, tags, brandContractUri, brandUtilAddress]);
@@ -65,15 +65,15 @@ async function main() {
     const signer: Signer = await provider.getSigner();
 
     const signature = await signer.signMessage(brandName);
-    console.log(signature);
+    // console.log(signature);
     const response = await brandSetContract.mint('test', signature, brandAddress);
-    console.log(response);
+    // console.log(response);
 
     const ipName = 'IPName';
     const ipSymbol = 'IPSymbol';
     const ipLogo = 'IPLogo';
     const creator = '0xC8D64fdCA7DE05204b19cA62151fC4cd50Bcd106';
-    const ipContractUri = SERVER_HOST + 'metadata/contract/ip/1';
+    const ipContractUri = SERVER_HOST + '/metadata/contract/ip/1';
     const IPContract = await ethers.getContractFactory('IPContract');
     const ipContract = await upgrades.deployProxy(IPContract,
         [ipName, ipSymbol, ipLogo, brandAddress, creator, ipContractUri, brandUtilAddress]);

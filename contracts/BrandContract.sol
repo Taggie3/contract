@@ -16,12 +16,12 @@ import "./interfaces/IBrandUtil.sol";
 
 // turn off revert strings
 contract BrandContract is
-    ERC721Upgradeable,
-    ERC721EnumerableUpgradeable,
-    PausableUpgradeable,
-    OwnableUpgradeable,
-    ERC721BurnableUpgradeable,
-    ERC721RoyaltyUpgradeable
+ERC721Upgradeable,
+ERC721EnumerableUpgradeable,
+PausableUpgradeable,
+OwnableUpgradeable,
+ERC721BurnableUpgradeable,
+ERC721RoyaltyUpgradeable
 {
     using CountersUpgradeable for CountersUpgradeable.Counter;
     CountersUpgradeable.Counter private _tokenIdCounter;
@@ -73,24 +73,27 @@ contract BrandContract is
     }
 
     // mint数量不限制，只能由owner进行mint，在mint指定splitter地址为版税受益人
-    function mint(string memory ipUri, IIPContract ipContract)
-        public
-        whenNotPaused
-        onlyOwner
+    function mint(string memory ipUri, IIPContract _ipContract)
+    public
+    whenNotPaused
+    onlyOwner
     {
         // 检查ip合约
         require(
-            address(this) == ipContract.brandAddress(),
-            "brandAddress error"
+            address(this) == _ipContract.brandContract(),
+            "brandContractAddress error"
         );
 
-        string memory ipName = ipContract.name();
-        string memory ipSymbol = ipContract.symbol();
-        address ipOwner = ipContract.owner();
+        string memory ipName = _ipContract.name();
+        string memory ipSymbol = _ipContract.symbol();
+        address ipOwner = _ipContract.owner();
         // 检查IP是否已存在
         for (uint256 i = 0; i < ips.length; i++) {
             IP memory ip = ips[i];
-            require(ip.ipContract != ipContract, "IP address existed");
+            require(
+                address(ip.ipContract) != address(_ipContract),
+                "IP address existed"
+            );
             require(
                 keccak256(bytes(ip.name)) != keccak256(bytes(ipName)),
                 "IP name existed"
@@ -105,13 +108,13 @@ contract BrandContract is
         emit NewIPEvent(
             tokenId,
             ipName,
-            address(ipContract),
+            address(_ipContract),
             address(this),
             ipOwner
         );
 
         // 新建IP
-        IP memory newIP = IP(ipName, ipSymbol, ipContract);
+        IP memory newIP = IP(ipName, ipSymbol, _ipContract);
         ips.push(newIP);
         tokenIdToIP[tokenId] = newIP;
 
@@ -148,10 +151,10 @@ contract BrandContract is
     }
 
     function transferOwnership(address newOwner)
-        public
-        virtual
-        override
-        onlyOwnerOrigin
+    public
+    virtual
+    override
+    onlyBrandSet
     {
         require(
             newOwner != address(0),
@@ -176,7 +179,7 @@ contract BrandContract is
     function withdraw() public onlyOwner {
         address _owner = owner();
         uint256 amount = address(this).balance;
-        (bool sent, ) = _owner.call{value: amount}("");
+        (bool sent,) = _owner.call{value : amount}("");
         require(sent, "Failed to send Ether");
     }
 
@@ -200,57 +203,60 @@ contract BrandContract is
         uint256 tokenId,
         uint256 batchSize
     )
-        internal
-        override(ERC721Upgradeable, ERC721EnumerableUpgradeable)
-        whenNotPaused
+    internal
+    override(ERC721Upgradeable, ERC721EnumerableUpgradeable)
+    whenNotPaused
     {
         super._beforeTokenTransfer(from, to, tokenId, batchSize);
     }
 
     function supportsInterface(bytes4 interfaceId)
-        public
-        view
-        virtual
-        override(
-            ERC721Upgradeable,
-            ERC721EnumerableUpgradeable,
-            ERC721RoyaltyUpgradeable
-        )
-        returns (bool)
+    public
+    view
+    virtual
+    override(
+    ERC721Upgradeable,
+    ERC721EnumerableUpgradeable,
+    ERC721RoyaltyUpgradeable
+    )
+    returns (bool)
     {
         return super.supportsInterface(interfaceId);
     }
 
     function _burn(uint256 tokenId)
-        internal
-        virtual
-        override(ERC721Upgradeable, ERC721RoyaltyUpgradeable)
+    internal
+    virtual
+    override(ERC721Upgradeable, ERC721RoyaltyUpgradeable)
     {
         return super._burn(tokenId);
     }
 
     function tokenURI(uint256 tokenId)
-        public
-        view
-        virtual
-        override
-        returns (string memory)
+    public
+    view
+    virtual
+    override
+    returns (string memory)
     {
         return tokenIdToUri[tokenId];
     }
 
-    modifier onlyOwnerOrigin() {
-        _checkOwnerOrigin();
+    modifier onlyBrandSet() {
+        _checkBrandSet();
         _;
     }
 
-    function _checkOwnerOrigin() internal view virtual {
-        require(owner() == tx.origin, "Ownable: caller is not the owner");
+    function _checkBrandSet() internal view virtual {
+        require(
+            brandSetAddress == msg.sender,
+            "Ownable: caller is not the brandSet"
+        );
     }
 }
 
-struct IP {
-    string name;
-    string symbol;
-    IIPContract ipContract;
-}
+    struct IP {
+        string name;
+        string symbol;
+        IIPContract ipContract;
+    }

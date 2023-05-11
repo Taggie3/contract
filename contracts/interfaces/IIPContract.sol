@@ -2,7 +2,7 @@
 pragma solidity ^0.8.0;
 
 interface IIPContract {
-    function brandAddress() external view returns (address);
+    function brandContract() external view returns (address);
 
     function name() external view returns (string memory);
 

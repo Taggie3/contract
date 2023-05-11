@@ -11,6 +11,7 @@ import "@openzeppelin/contracts-upgradeable/utils/CountersUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/token/ERC721/extensions/ERC721RoyaltyUpgradeable.sol";
 import "@openzeppelin/contracts/finance/PaymentSplitter.sol";
 import "./interfaces/IBrandUtil.sol";
+import "./interfaces/IBrandContract.sol";
 
 contract IPContract is
     ERC721Upgradeable,
@@ -23,7 +24,7 @@ contract IPContract is
     using CountersUpgradeable for CountersUpgradeable.Counter;
     CountersUpgradeable.Counter private _tokenIdCounter;
     string public logo;
-    address public brandAddress;
+    IBrandContract public brandContract;
 
     mapping(uint256 => string) tokenIdToUri;
 
@@ -35,14 +36,14 @@ contract IPContract is
         string memory _name,
         string memory _symbol,
         string memory _logo,
-        address _brandAddress,
+        IBrandContract _brandContract,
         address _creatorAddress,
         string memory _contractURI,
         IBrandUtil _brandUtil
     ) public initializer {
         __ERC721_init(_name, _symbol);
         logo = _logo;
-        brandAddress = _brandAddress;
+        brandContract = _brandContract;
         contractURI = _contractURI;
         brandUtil = _brandUtil;
 
@@ -67,7 +68,7 @@ contract IPContract is
             tokenId,
             memeId,
             address(this),
-            brandAddress,
+            address(brandContract),
             creator
         );
 
@@ -97,11 +98,15 @@ contract IPContract is
         logo = _logo;
     }
 
+    function updateBrandContract(IBrandContract _brandContract) public onlyOwner whenNotPaused {
+        brandContract = _brandContract;
+    }
+
     function transferOwnership(address newOwner)
         public
         virtual
         override
-        onlyOwnerOrigin
+        onlyBrand
     {
         require(
             newOwner != address(0),
@@ -155,12 +160,15 @@ contract IPContract is
         return tokenIdToUri[tokenId];
     }
 
-    modifier onlyOwnerOrigin() {
-        _checkOwnerOrigin();
+    modifier onlyBrand() {
+        _checkBrand();
         _;
     }
 
-    function _checkOwnerOrigin() internal view virtual {
-        require(owner() == tx.origin, "Ownable: caller is not the owner");
+    function _checkBrand() internal view virtual {
+        require(
+            address(brandContract) == msg.sender,
+            "Ownable: caller is not the brandContract"
+        );
     }
 }
