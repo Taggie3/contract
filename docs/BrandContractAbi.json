@@ -1,58 +1,5 @@
 [
   {
-    "inputs": [
-      {
-        "internalType": "string",
-        "name": "_name",
-        "type": "string"
-      },
-      {
-        "internalType": "string",
-        "name": "_symbol",
-        "type": "string"
-      },
-      {
-        "internalType": "string",
-        "name": "_logo",
-        "type": "string"
-      },
-      {
-        "internalType": "string",
-        "name": "_slogan",
-        "type": "string"
-      },
-      {
-        "internalType": "address",
-        "name": "_brandSetAddress",
-        "type": "address"
-      },
-      {
-        "components": [
-          {
-            "internalType": "uint256",
-            "name": "tokenId",
-            "type": "uint256"
-          },
-          {
-            "internalType": "string",
-            "name": "types",
-            "type": "string"
-          },
-          {
-            "internalType": "string",
-            "name": "value",
-            "type": "string"
-          }
-        ],
-        "internalType": "struct TagContract.Tag[]",
-        "name": "_tags",
-        "type": "tuple[]"
-      }
-    ],
-    "stateMutability": "payable",
-    "type": "constructor"
-  },
-  {
     "anonymous": false,
     "inputs": [
       {
@@ -100,6 +47,19 @@
       }
     ],
     "name": "ApprovalForAll",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": false,
+        "internalType": "uint8",
+        "name": "version",
+        "type": "uint8"
+      }
+    ],
+    "name": "Initialized",
     "type": "event"
   },
   {
@@ -264,6 +224,19 @@
     "type": "function"
   },
   {
+    "inputs": [],
+    "name": "brandUtil",
+    "outputs": [
+      {
+        "internalType": "contract IBrandUtil",
+        "name": "",
+        "type": "address"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
     "inputs": [
       {
         "internalType": "uint256",
@@ -274,6 +247,19 @@
     "name": "burn",
     "outputs": [],
     "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "contractURI",
+    "outputs": [
+      {
+        "internalType": "string",
+        "name": "",
+        "type": "string"
+      }
+    ],
+    "stateMutability": "view",
     "type": "function"
   },
   {
@@ -298,6 +284,71 @@
   {
     "inputs": [
       {
+        "internalType": "string",
+        "name": "_name",
+        "type": "string"
+      },
+      {
+        "internalType": "string",
+        "name": "_symbol",
+        "type": "string"
+      },
+      {
+        "internalType": "string",
+        "name": "_logo",
+        "type": "string"
+      },
+      {
+        "internalType": "string",
+        "name": "_slogan",
+        "type": "string"
+      },
+      {
+        "internalType": "address",
+        "name": "_brandSetAddress",
+        "type": "address"
+      },
+      {
+        "components": [
+          {
+            "internalType": "uint256",
+            "name": "tokenId",
+            "type": "uint256"
+          },
+          {
+            "internalType": "string",
+            "name": "types",
+            "type": "string"
+          },
+          {
+            "internalType": "string",
+            "name": "value",
+            "type": "string"
+          }
+        ],
+        "internalType": "struct TagContract.Tag[]",
+        "name": "_tags",
+        "type": "tuple[]"
+      },
+      {
+        "internalType": "string",
+        "name": "_contractURI",
+        "type": "string"
+      },
+      {
+        "internalType": "contract IBrandUtil",
+        "name": "_brandUtil",
+        "type": "address"
+      }
+    ],
+    "name": "initialize",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
         "internalType": "uint256",
         "name": "",
         "type": "uint256"
@@ -316,8 +367,8 @@
         "type": "string"
       },
       {
-        "internalType": "address",
-        "name": "ipAddress",
+        "internalType": "contract IIPContract",
+        "name": "ipContract",
         "type": "address"
       }
     ],
@@ -365,12 +416,12 @@
             "type": "string"
           },
           {
-            "internalType": "address",
-            "name": "ipAddress",
+            "internalType": "contract IIPContract",
+            "name": "ipContract",
             "type": "address"
           }
         ],
-        "internalType": "struct BrandContract.IP[]",
+        "internalType": "struct IP[]",
         "name": "",
         "type": "tuple[]"
       }
@@ -429,14 +480,14 @@
         "type": "string"
       },
       {
-        "internalType": "address",
-        "name": "ipContractAddress",
+        "internalType": "contract IIPContract",
+        "name": "_ipContract",
         "type": "address"
       }
     ],
     "name": "mint",
     "outputs": [],
-    "stateMutability": "payable",
+    "stateMutability": "nonpayable",
     "type": "function"
   },
   {
