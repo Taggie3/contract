@@ -15,12 +15,12 @@ import "./interfaces/IBrandUtil.sol";
 
 // turn off revert strings
 contract BrandSetContract is
-    ERC721Upgradeable,
-    ERC721EnumerableUpgradeable,
-    PausableUpgradeable,
-    OwnableUpgradeable,
-    ERC721BurnableUpgradeable,
-    ERC721RoyaltyUpgradeable
+ERC721Upgradeable,
+ERC721EnumerableUpgradeable,
+PausableUpgradeable,
+OwnableUpgradeable,
+ERC721BurnableUpgradeable,
+ERC721RoyaltyUpgradeable
 {
     using CountersUpgradeable for CountersUpgradeable.Counter;
     CountersUpgradeable.Counter private _tokenIdCounter;
@@ -54,9 +54,9 @@ contract BrandSetContract is
     }
 
     function changeTagContract(address tagContractAddress)
-        public
-        onlyOwner
-        whenNotPaused
+    public
+    onlyOwner
+    whenNotPaused
     {
         tagContract = TagContract(tagContractAddress);
     }
@@ -125,7 +125,7 @@ contract BrandSetContract is
     event NewBrandEvent(
         uint256 tokenId,
         string brandName,
-        address brandContract,
+        address brandContractAddress,
         address brandOwner
     );
 
@@ -140,7 +140,7 @@ contract BrandSetContract is
         uint256 batchSize
     ) internal virtual override(ERC721Upgradeable) {
         IBrandContract brandContract = tokenIdToBrand[firstTokenId]
-            .brandContract;
+        .brandContract;
         brandContract.transferOwnership(to);
     }
 
@@ -150,7 +150,7 @@ contract BrandSetContract is
     function withdraw() public onlyOwner {
         address _owner = owner();
         uint256 amount = address(this).balance;
-        (bool sent, ) = _owner.call{value: amount}("");
+        (bool sent,) = _owner.call{value : amount}("");
         require(sent, "Failed to send Ether");
     }
 
@@ -174,48 +174,48 @@ contract BrandSetContract is
         uint256 tokenId,
         uint256 batchSize
     )
-        internal
-        override(ERC721Upgradeable, ERC721EnumerableUpgradeable)
-        whenNotPaused
+    internal
+    override(ERC721Upgradeable, ERC721EnumerableUpgradeable)
+    whenNotPaused
     {
         super._beforeTokenTransfer(from, to, tokenId, batchSize);
     }
 
     function supportsInterface(bytes4 interfaceId)
-        public
-        view
-        virtual
-        override(
-            ERC721Upgradeable,
-            ERC721EnumerableUpgradeable,
-            ERC721RoyaltyUpgradeable
-        )
-        returns (bool)
+    public
+    view
+    virtual
+    override(
+    ERC721Upgradeable,
+    ERC721EnumerableUpgradeable,
+    ERC721RoyaltyUpgradeable
+    )
+    returns (bool)
     {
         return super.supportsInterface(interfaceId);
     }
 
     function _burn(uint256 tokenId)
-        internal
-        virtual
-        override(ERC721Upgradeable, ERC721RoyaltyUpgradeable)
+    internal
+    virtual
+    override(ERC721Upgradeable, ERC721RoyaltyUpgradeable)
     {
         return super._burn(tokenId);
     }
 
     function tokenURI(uint256 tokenId)
-        public
-        view
-        virtual
-        override
-        returns (string memory)
+    public
+    view
+    virtual
+    override
+    returns (string memory)
     {
         return tokenIdToUri[tokenId];
     }
 }
 
-struct Brand {
-    string name;
-    string symbol;
-    IBrandContract brandContract;
-}
+    struct Brand {
+        string name;
+        string symbol;
+        IBrandContract brandContract;
+    }
