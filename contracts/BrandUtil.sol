@@ -2,15 +2,15 @@
 pragma solidity ^0.8.0;
 
 import "./TagContract.sol";
-import "@openzeppelin/contracts/finance/PaymentSplitter.sol";
 import "@openzeppelin/contracts-upgradeable/utils/StringsUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/utils/cryptography/SignatureCheckerUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import "./interfaces/IBrandUtil.sol";
+import "./PaySplitter.sol";
 
 contract BrandUtil is Initializable, IBrandUtil {
     address public constant brand3Admin =
-        address(0xC8D64fdCA7DE05204b19cA62151fC4cd50Bcd106);
+    address(0xC8D64fdCA7DE05204b19cA62151fC4cd50Bcd106);
 
     //    function tagIdsToTags(uint256[] memory tagIds, TagContract tagContract)
     //        public
@@ -25,19 +25,12 @@ contract BrandUtil is Initializable, IBrandUtil {
     //        }
     //        return tags;
     //    }
-
+    //TODO 整理brand、ip、meme的分账逻辑
     function getDefaultSplitter()
-        public
-        returns (PaymentSplitter paymentSplitter)
+    public
+    returns (PaySplitter paySplitter)
     {
-        if (tx.origin == brand3Admin) {
-            address[] memory tempPayees = new address[](1);
-            uint256[] memory tempShares = new uint256[](1);
-            tempPayees[0] = tx.origin;
-            tempShares[0] = 200;
-            return
-                new PaymentSplitter(tempPayees, tempShares);
-        }
+
         address[] memory payees = new address[](2);
         uint256[] memory shares = new uint256[](2);
         payees[0] = tx.origin;
@@ -46,48 +39,13 @@ contract BrandUtil is Initializable, IBrandUtil {
         payees[1] = brand3Admin;
         shares[1] = 50;
 
-        return new PaymentSplitter(payees, shares);
+        return new PaySplitter(payees, shares);
     }
 
     function getSplitter(address owner, address creator)
-        public
-        returns (PaymentSplitter paymentSplitter)
+    public
+    returns (PaySplitter paySplitter)
     {
-        if (owner == brand3Admin && creator == brand3Admin) {
-            address[] memory tempPayees = new address[](1);
-            uint256[] memory tempShares = new uint256[](1);
-            tempPayees[0] = owner;
-            tempShares[0] = 100;
-            return
-                new PaymentSplitter(tempPayees, tempShares);
-        }
-
-        if (owner == brand3Admin || creator == brand3Admin) {
-            address[] memory tempPayees = new address[](2);
-            uint256[] memory tempShares = new uint256[](2);
-            if (owner != brand3Admin) {
-                tempPayees[0] = owner;
-            }
-            if (creator != brand3Admin) {
-                tempPayees[0] = creator;
-            }
-            tempShares[0] = 100;
-            tempPayees[1] = brand3Admin;
-            tempShares[1] = 150;
-            return
-                new PaymentSplitter(tempPayees, tempShares);
-        }
-
-        if (owner == creator) {
-            address[] memory tempPayees = new address[](2);
-            uint256[] memory tempShares = new uint256[](2);
-            tempPayees[0] = owner;
-            tempShares[0] = 200;
-            tempPayees[1] = brand3Admin;
-            tempShares[1] = 150;
-            return
-                new PaymentSplitter(tempPayees, tempShares);
-        }
 
         address[] memory payees = new address[](3);
         uint256[] memory shares = new uint256[](3);
@@ -98,13 +56,13 @@ contract BrandUtil is Initializable, IBrandUtil {
         payees[2] = brand3Admin;
         shares[2] = 50;
 
-        return new PaymentSplitter(payees, shares);
+        return new PaySplitter(payees, shares);
     }
 
     function getMessageHash(string memory message)
-        public
-        pure
-        returns (bytes32)
+    public
+    pure
+    returns (bytes32)
     {
         bytes32 messageHash = keccak256(
             abi.encodePacked(
@@ -124,10 +82,10 @@ contract BrandUtil is Initializable, IBrandUtil {
     ) public view returns (bool) {
         bytes32 messageHash = getMessageHash(message);
         return
-            SignatureCheckerUpgradeable.isValidSignatureNow(
-                signer,
-                messageHash,
-                signature
-            );
+        SignatureCheckerUpgradeable.isValidSignatureNow(
+            signer,
+            messageHash,
+            signature
+        );
     }
 }
