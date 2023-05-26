@@ -14,6 +14,7 @@ import "./TagContract.sol";
 import "./PaySplitter.sol";
 
 // turn off revert strings
+//TODO 压缩字节数
 contract BrandContract is
     ERC721Upgradeable,
     ERC721EnumerableUpgradeable,
