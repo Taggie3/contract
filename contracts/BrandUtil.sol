@@ -9,8 +9,6 @@ import "./interfaces/IBrandUtil.sol";
 import "./PaySplitter.sol";
 
 contract BrandUtil is Initializable, IBrandUtil {
-    address public constant brand3Admin =
-    address(0xC8D64fdCA7DE05204b19cA62151fC4cd50Bcd106);
 
     //    function tagIdsToTags(uint256[] memory tagIds, TagContract tagContract)
     //        public
@@ -25,39 +23,38 @@ contract BrandUtil is Initializable, IBrandUtil {
     //        }
     //        return tags;
     //    }
-    //TODO 整理brand、ip、meme的分账逻辑
-    function getDefaultSplitter()
-    public
-    returns (PaySplitter paySplitter)
-    {
-
-        address[] memory payees = new address[](2);
-        uint256[] memory shares = new uint256[](2);
-        payees[0] = tx.origin;
-        shares[0] = 200;
-
-        payees[1] = brand3Admin;
-        shares[1] = 50;
-
-        return new PaySplitter(payees, shares);
-    }
-
-    function getSplitter(address owner, address creator)
-    public
-    returns (PaySplitter paySplitter)
-    {
-
-        address[] memory payees = new address[](3);
-        uint256[] memory shares = new uint256[](3);
-        payees[0] = owner;
-        shares[0] = 100;
-        payees[1] = creator;
-        shares[1] = 100;
-        payees[2] = brand3Admin;
-        shares[2] = 50;
-
-        return new PaySplitter(payees, shares);
-    }
+//    function getDefaultSplitter()
+//    public
+//    returns (PaySplitter paySplitter)
+//    {
+//
+//        address[] memory payees = new address[](2);
+//        uint256[] memory shares = new uint256[](2);
+//        payees[0] = tx.origin;
+//        shares[0] = 200;
+//
+//        payees[1] = brand3Admin;
+//        shares[1] = 50;
+//
+//        return new PaySplitter(payees, shares);
+//    }
+//
+//    function getSplitter(address owner, address creator)
+//    public
+//    returns (PaySplitter paySplitter)
+//    {
+//
+//        address[] memory payees = new address[](3);
+//        uint256[] memory shares = new uint256[](3);
+//        payees[0] = owner;
+//        shares[0] = 100;
+//        payees[1] = creator;
+//        shares[1] = 100;
+//        payees[2] = brand3Admin;
+//        shares[2] = 50;
+//
+//        return new PaySplitter(payees, shares);
+//    }
 
     function getMessageHash(string memory message)
     public

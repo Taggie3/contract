@@ -11,6 +11,7 @@ import "@openzeppelin/contracts-upgradeable/token/ERC721/extensions/ERC721Royalt
 import "@openzeppelin/contracts/finance/PaymentSplitter.sol";
 import "./TagContract.sol";
 import "./interfaces/IBrandContract.sol";
+import "./PaySplitter.sol";
 import "./interfaces/IBrandUtil.sol";
 
 // turn off revert strings
@@ -24,6 +25,7 @@ ERC721RoyaltyUpgradeable
 {
     using CountersUpgradeable for CountersUpgradeable.Counter;
     CountersUpgradeable.Counter private _tokenIdCounter;
+    address public constant brand3Admin = address(0xC8D64fdCA7DE05204b19cA62151fC4cd50Bcd106);
 
     TagContract public tagContract;
 
@@ -47,10 +49,15 @@ ERC721RoyaltyUpgradeable
         brandUtil = _brandUtil;
         _transferOwnership(tx.origin);
 
-        PaymentSplitter paymentSplitter = brandUtil.getDefaultSplitter();
-        address splitterAddress = address(paymentSplitter);
+        address[] memory payees = new address[](1);
+        uint256[] memory shares = new uint256[](1);
+        payees[0] = brand3Admin;
+        shares[0] = 100;
 
-        _setDefaultRoyalty(splitterAddress, 250);
+        PaySplitter paySplitter = new PaySplitter(payees, shares);
+        address splitterAddress = address(paySplitter);
+
+        _setDefaultRoyalty(splitterAddress, 100);
     }
 
     function changeTagContract(address tagContractAddress)
@@ -115,11 +122,6 @@ ERC721RoyaltyUpgradeable
         brands.push(newBrand);
         tokenIdToBrand[tokenId] = newBrand;
         _safeMint(msg.sender, tokenId);
-        PaymentSplitter paymentSplitter = brandUtil.getSplitter(
-            this.owner(),
-            brandContract.owner()
-        );
-        _setTokenRoyalty(tokenId, address(paymentSplitter), 250);
     }
 
     event NewBrandEvent(
@@ -139,8 +141,7 @@ ERC721RoyaltyUpgradeable
         uint256 firstTokenId,
         uint256 batchSize
     ) internal virtual override(ERC721Upgradeable) {
-        IBrandContract brandContract = tokenIdToBrand[firstTokenId]
-        .brandContract;
+        IBrandContract brandContract = tokenIdToBrand[firstTokenId].brandContract;
         brandContract.transferOwnership(to);
     }
 
@@ -150,7 +151,7 @@ ERC721RoyaltyUpgradeable
     function withdraw() public onlyOwner {
         address _owner = owner();
         uint256 amount = address(this).balance;
-        (bool sent,) = _owner.call{value : amount}("");
+        (bool sent,) = _owner.call{value: amount}("");
         require(sent, "Failed to send Ether");
     }
 

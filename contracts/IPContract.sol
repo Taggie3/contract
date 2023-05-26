@@ -10,8 +10,8 @@ import "@openzeppelin/contracts-upgradeable/token/ERC721/extensions/ERC721Burnab
 import "@openzeppelin/contracts-upgradeable/utils/CountersUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/token/ERC721/extensions/ERC721RoyaltyUpgradeable.sol";
 import "@openzeppelin/contracts/finance/PaymentSplitter.sol";
-import "./interfaces/IBrandUtil.sol";
 import "./interfaces/IBrandContract.sol";
+import "./PaySplitter.sol";
 
 contract IPContract is
     ERC721Upgradeable,
@@ -23,6 +23,8 @@ contract IPContract is
 {
     using CountersUpgradeable for CountersUpgradeable.Counter;
     CountersUpgradeable.Counter private _tokenIdCounter;
+    address public constant brand3Admin =
+        address(0xC8D64fdCA7DE05204b19cA62151fC4cd50Bcd106);
     string public logo;
     IBrandContract public brandContract;
 
@@ -30,29 +32,35 @@ contract IPContract is
 
     string public contractURI;
 
-    IBrandUtil public brandUtil;
-
     function initialize(
         string memory _name,
         string memory _symbol,
         string memory _logo,
         IBrandContract _brandContract,
         address _creatorAddress,
-        string memory _contractURI,
-        IBrandUtil _brandUtil
+        string memory _contractURI
     ) public initializer {
         __ERC721_init(_name, _symbol);
         logo = _logo;
         brandContract = _brandContract;
         contractURI = _contractURI;
-        brandUtil = _brandUtil;
 
         _transferOwnership(_creatorAddress);
         // 配置默认版税
-        PaymentSplitter paymentSplitter = brandUtil.getDefaultSplitter();
-        address splitterAddress = address(paymentSplitter);
+        // 配置默认版权分账
+        address[] memory payees = new address[](3);
+        uint256[] memory shares = new uint256[](3);
+        payees[0] = brandContract.owner();
+        shares[0] = 500;
+        payees[1] = owner();
+        shares[1] = 1000;
+        payees[2] = brand3Admin;
+        shares[2] = 100;
 
-        _setDefaultRoyalty(splitterAddress, 250);
+        PaySplitter paySplitter = new PaySplitter(payees, shares);
+        address splitterAddress = address(paySplitter);
+
+        _setDefaultRoyalty(splitterAddress, 1600);
     }
 
     function mint(
@@ -75,14 +83,20 @@ contract IPContract is
         tokenIdToUri[tokenId] = MemeUri;
         _safeMint(creator, tokenId);
 
-        //   nft交易版税1%给owner，1%给creator，0.5%给平台.通过splitter处理
+        address[] memory payees = new address[](4);
+        uint256[] memory shares = new uint256[](4);
+        payees[0] = brandContract.owner();
+        shares[0] = 500;
+        payees[1] = owner();
+        shares[1] = 500;
+        payees[2] = creator;
+        shares[2] = 500;
+        payees[3] = brand3Admin;
+        shares[3] = 100;
 
-        PaymentSplitter paymentSplitter = brandUtil.getSplitter(
-            this.owner(),
-            creator
-        );
-        address splitterAddress = address(paymentSplitter);
-        _setTokenRoyalty(tokenId, splitterAddress, 250);
+        PaySplitter paySplitter = new PaySplitter(payees, shares);
+        address splitterAddress = address(paySplitter);
+        _setTokenRoyalty(tokenId, splitterAddress, 1600);
     }
 
     // events
@@ -98,7 +112,11 @@ contract IPContract is
         logo = _logo;
     }
 
-    function updateBrandContract(IBrandContract _brandContract) public onlyOwner whenNotPaused {
+    function updateBrandContract(IBrandContract _brandContract)
+        public
+        onlyOwner
+        whenNotPaused
+    {
         brandContract = _brandContract;
     }
 
@@ -112,6 +130,15 @@ contract IPContract is
             newOwner != address(0),
             "Ownable: new owner is the zero address"
         );
+        for (uint256 i = 0; i < _tokenIdCounter.current(); i++) {
+            //        调整所有的meme的版税
+            address splitterAddress;
+            (splitterAddress, ) = super.royaltyInfo(i, 0);
+            PaySplitter splitter = PaySplitter(payable(address(uint160(splitterAddress))));
+            splitter.deletePayee(owner());
+            splitter.addPayee(newOwner, 500);
+        }
+
         _transferOwnership(newOwner);
     }
 
@@ -170,5 +197,23 @@ contract IPContract is
             address(brandContract) == msg.sender,
             "Ownable: caller is not the brandContract"
         );
+    }
+
+    /**
+     * brand的owner修改，调整版税
+     */
+    function updateBrandOwner(address newBrandOwner) public onlyBrand {
+        require(
+            newBrandOwner != address(0),
+            "Ownable: new owner is the zero address"
+        );
+        for (uint256 i = 0; i < _tokenIdCounter.current(); i++) {
+            //        调整所有的meme的版税
+             address splitterAddress;
+            (splitterAddress, ) = super.royaltyInfo(i, 0);
+            PaySplitter splitter = PaySplitter(payable(address(uint160(splitterAddress))));
+            splitter.deletePayee(brandContract.owner());
+            splitter.addPayee(newBrandOwner, 500);
+        }
     }
 }

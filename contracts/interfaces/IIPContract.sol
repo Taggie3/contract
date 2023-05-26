@@ -11,4 +11,6 @@ interface IIPContract {
     function owner() external view returns (address);
 
     function transferOwnership(address newOwner) external;
+
+    function updateBrandOwner(address newBrandOwner) external;
 }

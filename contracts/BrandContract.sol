@@ -9,24 +9,24 @@ import "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/token/ERC721/extensions/ERC721BurnableUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/utils/CountersUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/token/ERC721/extensions/ERC721RoyaltyUpgradeable.sol";
-import "@openzeppelin/contracts/finance/PaymentSplitter.sol";
 import "./interfaces/IIPContract.sol";
 import "./TagContract.sol";
-import "./interfaces/IBrandUtil.sol";
+import "./PaySplitter.sol";
 
 // turn off revert strings
 contract BrandContract is
-ERC721Upgradeable,
-ERC721EnumerableUpgradeable,
-PausableUpgradeable,
-OwnableUpgradeable,
-ERC721BurnableUpgradeable,
-ERC721RoyaltyUpgradeable
+    ERC721Upgradeable,
+    ERC721EnumerableUpgradeable,
+    PausableUpgradeable,
+    OwnableUpgradeable,
+    ERC721BurnableUpgradeable,
+    ERC721RoyaltyUpgradeable
 {
     using CountersUpgradeable for CountersUpgradeable.Counter;
     CountersUpgradeable.Counter private _tokenIdCounter;
+    address public constant brand3Admin =
+        address(0xC8D64fdCA7DE05204b19cA62151fC4cd50Bcd106);
 
-    string _baseTokenURI;
     address public brandSetAddress;
 
     string public logo;
@@ -40,8 +40,6 @@ ERC721RoyaltyUpgradeable
 
     string public contractURI;
 
-    IBrandUtil public brandUtil;
-
     function initialize(
         string memory _name,
         string memory _symbol,
@@ -49,11 +47,9 @@ ERC721RoyaltyUpgradeable
         string memory _slogan,
         address _brandSetAddress,
         TagContract.Tag[] memory _tags,
-        string memory _contractURI,
-        IBrandUtil _brandUtil
+        string memory _contractURI
     ) public initializer {
         __ERC721_init(_name, _symbol);
-        brandUtil = _brandUtil;
         require(_tags.length > 0, "tags length must > 0");
         for (uint256 i = 0; i < _tags.length; i++) {
             tags.push(_tags[i]);
@@ -66,17 +62,24 @@ ERC721RoyaltyUpgradeable
         _transferOwnership(tx.origin);
 
         // 配置默认版权分账
-        PaymentSplitter paymentSplitter = brandUtil.getDefaultSplitter();
-        address splitterAddress = address(paymentSplitter);
+        address[] memory payees = new address[](2);
+        uint256[] memory shares = new uint256[](2);
+        payees[0] = owner();
+        shares[0] = 1000;
+        payees[1] = brand3Admin;
+        shares[1] = 100;
 
-        _setDefaultRoyalty(splitterAddress, 250);
+        PaySplitter paySplitter = new PaySplitter(payees, shares);
+        address splitterAddress = address(paySplitter);
+
+        _setDefaultRoyalty(splitterAddress, 1100);
     }
 
     // mint数量不限制，只能由owner进行mint，在mint指定splitter地址为版税受益人
     function mint(string memory ipUri, IIPContract _ipContract)
-    public
-    whenNotPaused
-    onlyOwner
+        public
+        whenNotPaused
+        onlyOwner
     {
         // 检查ip合约
         require(
@@ -120,13 +123,19 @@ ERC721RoyaltyUpgradeable
 
         tokenIdToUri[tokenId] = ipUri;
         _safeMint(ipOwner, tokenId);
-        //   nft交易版税1%给owner，1%给creator，0.5%给平台.通过splitter处理
-        PaymentSplitter paymentSplitter = brandUtil.getSplitter(
-            this.owner(),
-            ipOwner
-        );
-        address splitterAddress = address(paymentSplitter);
-        _setTokenRoyalty(tokenId, splitterAddress, 250);
+        //   nft交易版税5%给owner，5%给creator，1%给平台.通过splitter处理
+        address[] memory payees = new address[](3);
+        uint256[] memory shares = new uint256[](3);
+        payees[0] = owner();
+        shares[0] = 500;
+        payees[1] = ipOwner;
+        shares[1] = 500;
+        payees[2] = brand3Admin;
+        shares[2] = 100;
+
+        PaySplitter paySplitter = new PaySplitter(payees, shares);
+        address splitterAddress = address(paySplitter);
+        _setTokenRoyalty(tokenId, splitterAddress, 1100);
     }
 
     // events
@@ -151,15 +160,26 @@ ERC721RoyaltyUpgradeable
     }
 
     function transferOwnership(address newOwner)
-    public
-    virtual
-    override
-    onlyBrandSet
+        public
+        virtual
+        override
+        onlyBrandSet
     {
         require(
             newOwner != address(0),
             "Ownable: new owner is the zero address"
         );
+        for (uint256 i = 0; i < _tokenIdCounter.current(); i++) {
+            //        调整所有的ip的版税
+            address splitterAddress;
+            (splitterAddress, ) = super.royaltyInfo(i, 0);
+            PaySplitter splitter = PaySplitter(payable(address(uint160(splitterAddress))));
+            splitter.deletePayee(owner());
+            splitter.addPayee(newOwner, 500);
+            //        通知所有的ip brand的owner改变了
+            IP memory ip = ips[i];
+            ip.ipContract.updateBrandOwner(newOwner);
+        }
         _transferOwnership(newOwner);
     }
 
@@ -179,7 +199,7 @@ ERC721RoyaltyUpgradeable
     function withdraw() public onlyOwner {
         address _owner = owner();
         uint256 amount = address(this).balance;
-        (bool sent,) = _owner.call{value : amount}("");
+        (bool sent, ) = _owner.call{value: amount}("");
         require(sent, "Failed to send Ether");
     }
 
@@ -203,41 +223,41 @@ ERC721RoyaltyUpgradeable
         uint256 tokenId,
         uint256 batchSize
     )
-    internal
-    override(ERC721Upgradeable, ERC721EnumerableUpgradeable)
-    whenNotPaused
+        internal
+        override(ERC721Upgradeable, ERC721EnumerableUpgradeable)
+        whenNotPaused
     {
         super._beforeTokenTransfer(from, to, tokenId, batchSize);
     }
 
     function supportsInterface(bytes4 interfaceId)
-    public
-    view
-    virtual
-    override(
-    ERC721Upgradeable,
-    ERC721EnumerableUpgradeable,
-    ERC721RoyaltyUpgradeable
-    )
-    returns (bool)
+        public
+        view
+        virtual
+        override(
+            ERC721Upgradeable,
+            ERC721EnumerableUpgradeable,
+            ERC721RoyaltyUpgradeable
+        )
+        returns (bool)
     {
         return super.supportsInterface(interfaceId);
     }
 
     function _burn(uint256 tokenId)
-    internal
-    virtual
-    override(ERC721Upgradeable, ERC721RoyaltyUpgradeable)
+        internal
+        virtual
+        override(ERC721Upgradeable, ERC721RoyaltyUpgradeable)
     {
         return super._burn(tokenId);
     }
 
     function tokenURI(uint256 tokenId)
-    public
-    view
-    virtual
-    override
-    returns (string memory)
+        public
+        view
+        virtual
+        override
+        returns (string memory)
     {
         return tokenIdToUri[tokenId];
     }
@@ -255,8 +275,8 @@ ERC721RoyaltyUpgradeable
     }
 }
 
-    struct IP {
-        string name;
-        string symbol;
-        IIPContract ipContract;
-    }
+struct IP {
+    string name;
+    string symbol;
+    IIPContract ipContract;
+}

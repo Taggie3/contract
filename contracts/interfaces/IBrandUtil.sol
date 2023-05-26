@@ -10,13 +10,13 @@ interface IBrandUtil {
     // view
     // returns (TagContract.Tag[] memory tags);
 
-    function getDefaultSplitter()
-        external
-        returns (PaySplitter paymentSplitter);
-
-    function getSplitter(address owner, address creator)
-        external
-        returns (PaySplitter paymentSplitter);
+//    function getDefaultSplitter()
+    //        external
+    //        returns (PaySplitter paymentSplitter);
+    //
+    //    function getSplitter(address owner, address creator)
+    //        external
+    //        returns (PaySplitter paymentSplitter);
 
     function getMessageHash(string memory message)
         external
