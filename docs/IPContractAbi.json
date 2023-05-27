@@ -449,12 +449,12 @@
     "inputs": [
       {
         "internalType": "uint256",
-        "name": "_tokenId",
+        "name": "tokenId",
         "type": "uint256"
       },
       {
         "internalType": "uint256",
-        "name": "_salePrice",
+        "name": "salePrice",
         "type": "uint256"
       }
     ],
@@ -695,6 +695,19 @@
       }
     ],
     "name": "updateBrandContract",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "newBrandOwner",
+        "type": "address"
+      }
+    ],
+    "name": "updateBrandOwner",
     "outputs": [],
     "stateMutability": "nonpayable",
     "type": "function"

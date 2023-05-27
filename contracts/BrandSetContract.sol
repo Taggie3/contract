@@ -11,7 +11,7 @@ import "@openzeppelin/contracts-upgradeable/token/ERC721/extensions/ERC721Royalt
 import "@openzeppelin/contracts/finance/PaymentSplitter.sol";
 import "./TagContract.sol";
 import "./interfaces/IBrandContract.sol";
-import "./PaySplitter.sol";
+import "./interfaces/IPaySplitter.sol";
 import "./interfaces/IBrandUtil.sol";
 
 // turn off revert strings
@@ -25,7 +25,6 @@ ERC721RoyaltyUpgradeable
 {
     using CountersUpgradeable for CountersUpgradeable.Counter;
     CountersUpgradeable.Counter private _tokenIdCounter;
-    address public constant brand3Admin = address(0xC8D64fdCA7DE05204b19cA62151fC4cd50Bcd106);
 
     TagContract public tagContract;
 
@@ -51,13 +50,13 @@ ERC721RoyaltyUpgradeable
 
         address[] memory payees = new address[](1);
         uint256[] memory shares = new uint256[](1);
-        payees[0] = brand3Admin;
+        payees[0] = brandUtil.getBrand3Admin();
         shares[0] = 100;
 
-        PaySplitter paySplitter = new PaySplitter(payees, shares);
+        IPaySplitter paySplitter = brandUtil.buildSplitter(payees, shares, address(this));
         address splitterAddress = address(paySplitter);
 
-        _setDefaultRoyalty(splitterAddress, 100);
+        _setDefaultRoyalty(splitterAddress, 500);
     }
 
     function changeTagContract(address tagContractAddress)

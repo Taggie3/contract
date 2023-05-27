@@ -1,27 +1,20 @@
-// SPDX-License-Identifier: UNLICENSED
-pragma solidity ^0.8.0;
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.12;
 
-import "../TagContract.sol";
-import "../PaySplitter.sol";
+import "./IPaySplitter.sol";
 
 interface IBrandUtil {
-    // function tagIdsToTags(uint256[] memory tagIds, TagContract tagContract)
-    // external
-    // view
-    // returns (TagContract.Tag[] memory tags);
 
-//    function getDefaultSplitter()
-    //        external
-    //        returns (PaySplitter paymentSplitter);
-    //
-    //    function getSplitter(address owner, address creator)
-    //        external
-    //        returns (PaySplitter paymentSplitter);
+    function getBrand3Admin() external view returns (address);
+
+    function buildSplitter(address[] memory payees, uint256[] memory shares, address owner)
+    external
+    returns (IPaySplitter paySplitter);
 
     function getMessageHash(string memory message)
-        external
-        pure
-        returns (bytes32);
+    external
+    pure
+    returns (bytes32);
 
     function checkValidSignature(
         bytes memory signature,

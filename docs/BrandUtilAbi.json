@@ -28,6 +28,35 @@
   {
     "inputs": [
       {
+        "internalType": "address[]",
+        "name": "payees",
+        "type": "address[]"
+      },
+      {
+        "internalType": "uint256[]",
+        "name": "shares",
+        "type": "uint256[]"
+      },
+      {
+        "internalType": "address",
+        "name": "owner",
+        "type": "address"
+      }
+    ],
+    "name": "buildSplitter",
+    "outputs": [
+      {
+        "internalType": "contract IPaySplitter",
+        "name": "paySplitter",
+        "type": "address"
+      }
+    ],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
         "internalType": "bytes",
         "name": "signature",
         "type": "bytes"
@@ -56,15 +85,15 @@
   },
   {
     "inputs": [],
-    "name": "getDefaultSplitter",
+    "name": "getBrand3Admin",
     "outputs": [
       {
-        "internalType": "contract PaymentSplitter",
-        "name": "paymentSplitter",
+        "internalType": "address",
+        "name": "",
         "type": "address"
       }
     ],
-    "stateMutability": "nonpayable",
+    "stateMutability": "view",
     "type": "function"
   },
   {
@@ -87,27 +116,42 @@
     "type": "function"
   },
   {
+    "inputs": [],
+    "name": "initialize",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
     "inputs": [
       {
         "internalType": "address",
-        "name": "owner",
-        "type": "address"
-      },
-      {
-        "internalType": "address",
-        "name": "creator",
+        "name": "newBrand3Admin",
         "type": "address"
       }
     ],
-    "name": "getSplitter",
+    "name": "setBrand3Admin",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "name": "splitters",
     "outputs": [
       {
-        "internalType": "contract PaymentSplitter",
-        "name": "paymentSplitter",
+        "internalType": "contract PaySplitter",
+        "name": "",
         "type": "address"
       }
     ],
-    "stateMutability": "nonpayable",
+    "stateMutability": "view",
     "type": "function"
   }
 ]

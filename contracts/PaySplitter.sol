@@ -5,8 +5,9 @@ import "@openzeppelin/contracts/utils/Context.sol";
 import "@openzeppelin/contracts/utils/Address.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
+import "./interfaces/IPaySplitter.sol";
 
-contract PaySplitter is Context, Ownable {
+contract PaySplitter is Context, Ownable, IPaySplitter {
     event PayeeAdded(address account, uint256 shares);
     event PayeeDeleted(address account, uint256 shares);
     event PaymentReleased(address to, uint256 amount);
@@ -36,7 +37,7 @@ contract PaySplitter is Context, Ownable {
      * All addresses in `payees` must be non-zero. Both arrays must have the same non-zero length, and there must be no
      * duplicates in `payees`.
      */
-    constructor(address[] memory payees, uint256[] memory shares_) payable {
+    constructor(address[] memory payees, uint256[] memory shares_, address owner) {
         require(
             payees.length == shares_.length,
             "PaySplitter: payees and shares length mismatch"
@@ -52,7 +53,7 @@ contract PaySplitter is Context, Ownable {
             release();
         }
 
-        _transferOwnership(_msgSender());
+        _transferOwnership(owner);
 
     }
 

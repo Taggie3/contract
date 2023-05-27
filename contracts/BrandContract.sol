@@ -11,22 +11,21 @@ import "@openzeppelin/contracts-upgradeable/utils/CountersUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/token/ERC721/extensions/ERC721RoyaltyUpgradeable.sol";
 import "./interfaces/IIPContract.sol";
 import "./TagContract.sol";
-import "./PaySplitter.sol";
+import "./interfaces/IPaySplitter.sol";
+import "./interfaces/IBrandUtil.sol";
 
 // turn off revert strings
 //TODO 压缩字节数
 contract BrandContract is
-    ERC721Upgradeable,
-    ERC721EnumerableUpgradeable,
-    PausableUpgradeable,
-    OwnableUpgradeable,
-    ERC721BurnableUpgradeable,
-    ERC721RoyaltyUpgradeable
+ERC721Upgradeable,
+ERC721EnumerableUpgradeable,
+PausableUpgradeable,
+OwnableUpgradeable,
+ERC721BurnableUpgradeable,
+ERC721RoyaltyUpgradeable
 {
     using CountersUpgradeable for CountersUpgradeable.Counter;
     CountersUpgradeable.Counter private _tokenIdCounter;
-    address public constant brand3Admin =
-        address(0xC8D64fdCA7DE05204b19cA62151fC4cd50Bcd106);
 
     address public brandSetAddress;
 
@@ -41,6 +40,8 @@ contract BrandContract is
 
     string public contractURI;
 
+    IBrandUtil public brandUtil;
+
     function initialize(
         string memory _name,
         string memory _symbol,
@@ -48,7 +49,8 @@ contract BrandContract is
         string memory _slogan,
         address _brandSetAddress,
         TagContract.Tag[] memory _tags,
-        string memory _contractURI
+        string memory _contractURI,
+        IBrandUtil _brandUtil
     ) public initializer {
         __ERC721_init(_name, _symbol);
         require(_tags.length > 0, "tags length must > 0");
@@ -60,6 +62,7 @@ contract BrandContract is
         slogan = _slogan;
         brandSetAddress = _brandSetAddress;
         contractURI = _contractURI;
+        brandUtil = _brandUtil;
         _transferOwnership(tx.origin);
 
         // 配置默认版权分账
@@ -67,10 +70,10 @@ contract BrandContract is
         uint256[] memory shares = new uint256[](2);
         payees[0] = owner();
         shares[0] = 1000;
-        payees[1] = brand3Admin;
+        payees[1] = brandUtil.getBrand3Admin();
         shares[1] = 100;
 
-        PaySplitter paySplitter = new PaySplitter(payees, shares);
+        IPaySplitter paySplitter = brandUtil.buildSplitter(payees, shares, address(this));
         address splitterAddress = address(paySplitter);
 
         _setDefaultRoyalty(splitterAddress, 1100);
@@ -78,9 +81,9 @@ contract BrandContract is
 
     // mint数量不限制，只能由owner进行mint，在mint指定splitter地址为版税受益人
     function mint(string memory ipUri, IIPContract _ipContract)
-        public
-        whenNotPaused
-        onlyOwner
+    public
+    whenNotPaused
+    onlyOwner
     {
         // 检查ip合约
         require(
@@ -131,10 +134,10 @@ contract BrandContract is
         shares[0] = 500;
         payees[1] = ipOwner;
         shares[1] = 500;
-        payees[2] = brand3Admin;
+        payees[2] = brandUtil.getBrand3Admin();
         shares[2] = 100;
 
-        PaySplitter paySplitter = new PaySplitter(payees, shares);
+        IPaySplitter paySplitter = brandUtil.buildSplitter(payees, shares, address(this));
         address splitterAddress = address(paySplitter);
         _setTokenRoyalty(tokenId, splitterAddress, 1100);
     }
@@ -161,10 +164,10 @@ contract BrandContract is
     }
 
     function transferOwnership(address newOwner)
-        public
-        virtual
-        override
-        onlyBrandSet
+    public
+    virtual
+    override
+    onlyBrandSet
     {
         require(
             newOwner != address(0),
@@ -173,8 +176,8 @@ contract BrandContract is
         for (uint256 i = 0; i < _tokenIdCounter.current(); i++) {
             //        调整所有的ip的版税
             address splitterAddress;
-            (splitterAddress, ) = super.royaltyInfo(i, 0);
-            PaySplitter splitter = PaySplitter(payable(address(uint160(splitterAddress))));
+            (splitterAddress,) = super.royaltyInfo(i, 0);
+            IPaySplitter splitter = IPaySplitter(splitterAddress);
             splitter.deletePayee(owner());
             splitter.addPayee(newOwner, 500);
             //        通知所有的ip brand的owner改变了
@@ -200,7 +203,7 @@ contract BrandContract is
     function withdraw() public onlyOwner {
         address _owner = owner();
         uint256 amount = address(this).balance;
-        (bool sent, ) = _owner.call{value: amount}("");
+        (bool sent,) = _owner.call{value: amount}("");
         require(sent, "Failed to send Ether");
     }
 
@@ -224,41 +227,41 @@ contract BrandContract is
         uint256 tokenId,
         uint256 batchSize
     )
-        internal
-        override(ERC721Upgradeable, ERC721EnumerableUpgradeable)
-        whenNotPaused
+    internal
+    override(ERC721Upgradeable, ERC721EnumerableUpgradeable)
+    whenNotPaused
     {
         super._beforeTokenTransfer(from, to, tokenId, batchSize);
     }
 
     function supportsInterface(bytes4 interfaceId)
-        public
-        view
-        virtual
-        override(
-            ERC721Upgradeable,
-            ERC721EnumerableUpgradeable,
-            ERC721RoyaltyUpgradeable
-        )
-        returns (bool)
+    public
+    view
+    virtual
+    override(
+    ERC721Upgradeable,
+    ERC721EnumerableUpgradeable,
+    ERC721RoyaltyUpgradeable
+    )
+    returns (bool)
     {
         return super.supportsInterface(interfaceId);
     }
 
     function _burn(uint256 tokenId)
-        internal
-        virtual
-        override(ERC721Upgradeable, ERC721RoyaltyUpgradeable)
+    internal
+    virtual
+    override(ERC721Upgradeable, ERC721RoyaltyUpgradeable)
     {
         return super._burn(tokenId);
     }
 
     function tokenURI(uint256 tokenId)
-        public
-        view
-        virtual
-        override
-        returns (string memory)
+    public
+    view
+    virtual
+    override
+    returns (string memory)
     {
         return tokenIdToUri[tokenId];
     }
@@ -276,8 +279,8 @@ contract BrandContract is
     }
 }
 
-struct IP {
-    string name;
-    string symbol;
-    IIPContract ipContract;
-}
+    struct IP {
+        string name;
+        string symbol;
+        IIPContract ipContract;
+    }
