@@ -4,16 +4,13 @@
 autonumber
 
 actor applicant as applicant
-actor admin as admin
 participant backend as backend
 entity tagContract as tagContract
 entity brandSetContract as brandSetContract
 entity brandContract as brandContract
 participant alchemy as alchemy
 
-applicant --> backend: apply一个新的brand,并将请求保存在数据库中
-admin --> backend: 发现有一个新的brand申请
-admin --> backend: approve生成一个新的brand，并记录授权签名
+applicant --> backend: apply一个新的brand,自动签名,并将请求保存在数据库中
 applicant --> backend: 发现brand apply已被approve
 applicant --> brandContract: 部署新的brand合约
 applicant --> brandSetContract: mint一个brand
