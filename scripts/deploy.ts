@@ -98,3 +98,5 @@ main()
         console.error(error);
         process.exit(1);
     });
+
+//npx hardhat run .\scripts\deploy.ts --network mumbai
