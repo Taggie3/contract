@@ -25,19 +25,19 @@ async function main() {
 
     const BrandUtil = await ethers.getContractFactory('BrandUtil');
     const brandUtil = await upgrades.upgradeProxy(deployedContracts.BrandUtil, BrandUtil);
-    // console.log(brandUtil);
+    console.log('brandUtil success');
     const BrandSetContract = await ethers.getContractFactory('BrandSetContract');
     const brandSetContract = await upgrades.upgradeProxy(deployedContracts.BrandSetContract, BrandSetContract);
-    // console.log(brandSetContract);
+    console.log('brandSet success');
     const BrandContract = await ethers.getContractFactory('BrandContract');
     const brandContract = await upgrades.upgradeProxy(deployedContracts.BrandContract, BrandContract);
-    // console.log(brandContract);
+    console.log('brand success');
     const IPContract = await ethers.getContractFactory('IPContract');
     const ipContract = await upgrades.upgradeProxy(deployedContracts.IPContract, IPContract);
-    // console.log(ipContract);
+    console.log('ip success');
     const TagContract = await ethers.getContractFactory('TagContract');
     const tagContract = await upgrades.upgradeProxy(deployedContracts.TagContract, TagContract);
-    // console.log(tagContract);
+    console.log('tag success');
 
 }
 

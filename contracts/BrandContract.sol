@@ -17,12 +17,12 @@ import "./interfaces/IBrandUtil.sol";
 // turn off revert strings
 //TODO 压缩字节数
 contract BrandContract is
-ERC721Upgradeable,
-ERC721EnumerableUpgradeable,
-PausableUpgradeable,
-OwnableUpgradeable,
-ERC721BurnableUpgradeable,
-ERC721RoyaltyUpgradeable
+    ERC721Upgradeable,
+    ERC721EnumerableUpgradeable,
+    PausableUpgradeable,
+    OwnableUpgradeable,
+    ERC721BurnableUpgradeable,
+    ERC721RoyaltyUpgradeable
 {
     using CountersUpgradeable for CountersUpgradeable.Counter;
     CountersUpgradeable.Counter private _tokenIdCounter;
@@ -35,8 +35,8 @@ ERC721RoyaltyUpgradeable
 
     IP[] public ips;
 
-    mapping(uint256 => string) tokenIdToUri;
-    mapping(uint256 => IP) tokenIdToIP;
+    mapping(uint256 => string) public tokenIdToUri;
+    mapping(uint256 => IP) public tokenIdToIP;
 
     string public contractURI;
 
@@ -73,7 +73,11 @@ ERC721RoyaltyUpgradeable
         payees[1] = brandUtil.getBrand3Admin();
         shares[1] = 100;
 
-        IPaySplitter paySplitter = brandUtil.buildSplitter(payees, shares, address(this));
+        IPaySplitter paySplitter = brandUtil.buildSplitter(
+            payees,
+            shares,
+            address(this)
+        );
         address splitterAddress = address(paySplitter);
 
         _setDefaultRoyalty(splitterAddress, 1100);
@@ -81,9 +85,9 @@ ERC721RoyaltyUpgradeable
 
     // mint数量不限制，只能由owner进行mint，在mint指定splitter地址为版税受益人
     function mint(string memory ipUri, IIPContract _ipContract)
-    public
-    whenNotPaused
-    onlyOwner
+        public
+        whenNotPaused
+        onlyOwner
     {
         // 检查ip合约
         require(
@@ -137,7 +141,11 @@ ERC721RoyaltyUpgradeable
         payees[2] = brandUtil.getBrand3Admin();
         shares[2] = 100;
 
-        IPaySplitter paySplitter = brandUtil.buildSplitter(payees, shares, address(this));
+        IPaySplitter paySplitter = brandUtil.buildSplitter(
+            payees,
+            shares,
+            address(this)
+        );
         address splitterAddress = address(paySplitter);
         _setTokenRoyalty(tokenId, splitterAddress, 1100);
     }
@@ -164,10 +172,10 @@ ERC721RoyaltyUpgradeable
     }
 
     function transferOwnership(address newOwner)
-    public
-    virtual
-    override
-    onlyBrandSet
+        public
+        virtual
+        override
+        onlyBrandSet
     {
         require(
             newOwner != address(0),
@@ -176,7 +184,7 @@ ERC721RoyaltyUpgradeable
         for (uint256 i = 0; i < _tokenIdCounter.current(); i++) {
             //        调整所有的ip的版税
             address splitterAddress;
-            (splitterAddress,) = super.royaltyInfo(i, 0);
+            (splitterAddress, ) = super.royaltyInfo(i, 0);
             IPaySplitter splitter = IPaySplitter(splitterAddress);
             splitter.deletePayee(owner());
             splitter.addPayee(newOwner, 500);
@@ -203,7 +211,7 @@ ERC721RoyaltyUpgradeable
     function withdraw() public onlyOwner {
         address _owner = owner();
         uint256 amount = address(this).balance;
-        (bool sent,) = _owner.call{value: amount}("");
+        (bool sent, ) = _owner.call{value: amount}("");
         require(sent, "Failed to send Ether");
     }
 
@@ -227,41 +235,41 @@ ERC721RoyaltyUpgradeable
         uint256 tokenId,
         uint256 batchSize
     )
-    internal
-    override(ERC721Upgradeable, ERC721EnumerableUpgradeable)
-    whenNotPaused
+        internal
+        override(ERC721Upgradeable, ERC721EnumerableUpgradeable)
+        whenNotPaused
     {
         super._beforeTokenTransfer(from, to, tokenId, batchSize);
     }
 
     function supportsInterface(bytes4 interfaceId)
-    public
-    view
-    virtual
-    override(
-    ERC721Upgradeable,
-    ERC721EnumerableUpgradeable,
-    ERC721RoyaltyUpgradeable
-    )
-    returns (bool)
+        public
+        view
+        virtual
+        override(
+            ERC721Upgradeable,
+            ERC721EnumerableUpgradeable,
+            ERC721RoyaltyUpgradeable
+        )
+        returns (bool)
     {
         return super.supportsInterface(interfaceId);
     }
 
     function _burn(uint256 tokenId)
-    internal
-    virtual
-    override(ERC721Upgradeable, ERC721RoyaltyUpgradeable)
+        internal
+        virtual
+        override(ERC721Upgradeable, ERC721RoyaltyUpgradeable)
     {
         return super._burn(tokenId);
     }
 
     function tokenURI(uint256 tokenId)
-    public
-    view
-    virtual
-    override
-    returns (string memory)
+        public
+        view
+        virtual
+        override
+        returns (string memory)
     {
         return tokenIdToUri[tokenId];
     }
@@ -277,10 +285,26 @@ ERC721RoyaltyUpgradeable
             "Ownable: caller is not the brandSet"
         );
     }
+
+    function updateContractUri(string memory _contractUri)
+        public
+        onlyOwner
+        whenNotPaused
+    {
+        contractURI = _contractUri;
+    }
+
+    function updateTokenUri(string memory _tokenUri, uint256 tokenId)
+        public
+        onlyOwner
+        whenNotPaused
+    {
+        tokenIdToUri[tokenId] = _tokenUri;
+    }
 }
 
-    struct IP {
-        string name;
-        string symbol;
-        IIPContract ipContract;
-    }
+struct IP {
+    string name;
+    string symbol;
+    IIPContract ipContract;
+}

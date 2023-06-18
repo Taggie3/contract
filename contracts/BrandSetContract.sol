@@ -30,8 +30,8 @@ ERC721RoyaltyUpgradeable
 
     Brand[] public brands;
 
-    mapping(uint256 => string) tokenIdToUri;
-    mapping(uint256 => Brand) tokenIdToBrand;
+    mapping(uint256 => string) public tokenIdToUri;
+    mapping(uint256 => Brand) public tokenIdToBrand;
 
     string public contractURI;
 
@@ -53,7 +53,11 @@ ERC721RoyaltyUpgradeable
         payees[0] = brandUtil.getBrand3Admin();
         shares[0] = 100;
 
-        IPaySplitter paySplitter = brandUtil.buildSplitter(payees, shares, address(this));
+        IPaySplitter paySplitter = brandUtil.buildSplitter(
+            payees,
+            shares,
+            address(this)
+        );
         address splitterAddress = address(paySplitter);
 
         _setDefaultRoyalty(splitterAddress, 500);
@@ -140,7 +144,8 @@ ERC721RoyaltyUpgradeable
         uint256 firstTokenId,
         uint256 batchSize
     ) internal virtual override(ERC721Upgradeable) {
-        IBrandContract brandContract = tokenIdToBrand[firstTokenId].brandContract;
+        IBrandContract brandContract = tokenIdToBrand[firstTokenId]
+        .brandContract;
         brandContract.transferOwnership(to);
     }
 
@@ -150,7 +155,7 @@ ERC721RoyaltyUpgradeable
     function withdraw() public onlyOwner {
         address _owner = owner();
         uint256 amount = address(this).balance;
-        (bool sent,) = _owner.call{value: amount}("");
+        (bool sent,) = _owner.call{value : amount}("");
         require(sent, "Failed to send Ether");
     }
 
@@ -211,6 +216,22 @@ ERC721RoyaltyUpgradeable
     returns (string memory)
     {
         return tokenIdToUri[tokenId];
+    }
+
+    function updateContractUri(string memory _contractUri)
+    public
+    onlyOwner
+    whenNotPaused
+    {
+        contractURI = _contractUri;
+    }
+
+    function updateTokenUri(string memory _tokenUri, uint256 tokenId)
+    public
+    onlyOwner
+    whenNotPaused
+    {
+        tokenIdToUri[tokenId] = _tokenUri;
     }
 }
 

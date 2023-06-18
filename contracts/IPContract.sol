@@ -15,19 +15,19 @@ import "./interfaces/IPaySplitter.sol";
 import "./interfaces/IBrandUtil.sol";
 
 contract IPContract is
-ERC721Upgradeable,
-ERC721EnumerableUpgradeable,
-PausableUpgradeable,
-OwnableUpgradeable,
-ERC721BurnableUpgradeable,
-ERC721RoyaltyUpgradeable
+    ERC721Upgradeable,
+    ERC721EnumerableUpgradeable,
+    PausableUpgradeable,
+    OwnableUpgradeable,
+    ERC721BurnableUpgradeable,
+    ERC721RoyaltyUpgradeable
 {
     using CountersUpgradeable for CountersUpgradeable.Counter;
     CountersUpgradeable.Counter private _tokenIdCounter;
     string public logo;
     IBrandContract public brandContract;
 
-    mapping(uint256 => string) tokenIdToUri;
+    mapping(uint256 => string) public tokenIdToUri;
 
     string public contractURI;
     IBrandUtil public brandUtil;
@@ -59,7 +59,11 @@ ERC721RoyaltyUpgradeable
         payees[2] = brandUtil.getBrand3Admin();
         shares[2] = 100;
 
-        IPaySplitter paySplitter = brandUtil.buildSplitter(payees, shares, address(this));
+        IPaySplitter paySplitter = brandUtil.buildSplitter(
+            payees,
+            shares,
+            address(this)
+        );
         address splitterAddress = address(paySplitter);
 
         _setDefaultRoyalty(splitterAddress, 1600);
@@ -96,7 +100,11 @@ ERC721RoyaltyUpgradeable
         payees[3] = brandUtil.getBrand3Admin();
         shares[3] = 100;
 
-        IPaySplitter paySplitter = brandUtil.buildSplitter(payees, shares, address(this));
+        IPaySplitter paySplitter = brandUtil.buildSplitter(
+            payees,
+            shares,
+            address(this)
+        );
         address splitterAddress = address(paySplitter);
         _setTokenRoyalty(tokenId, splitterAddress, 1600);
     }
@@ -115,18 +123,18 @@ ERC721RoyaltyUpgradeable
     }
 
     function updateBrandContract(IBrandContract _brandContract)
-    public
-    onlyOwner
-    whenNotPaused
+        public
+        onlyOwner
+        whenNotPaused
     {
         brandContract = _brandContract;
     }
 
     function transferOwnership(address newOwner)
-    public
-    virtual
-    override
-    onlyBrand
+        public
+        virtual
+        override
+        onlyBrand
     {
         require(
             newOwner != address(0),
@@ -135,7 +143,7 @@ ERC721RoyaltyUpgradeable
         for (uint256 i = 0; i < _tokenIdCounter.current(); i++) {
             //        调整所有的meme的版税
             address splitterAddress;
-            (splitterAddress,) = super.royaltyInfo(i, 0);
+            (splitterAddress, ) = super.royaltyInfo(i, 0);
             IPaySplitter splitter = IPaySplitter(splitterAddress);
             splitter.deletePayee(owner());
             splitter.addPayee(newOwner, 500);
@@ -150,41 +158,41 @@ ERC721RoyaltyUpgradeable
         uint256 tokenId,
         uint256 batchSize
     )
-    internal
-    override(ERC721Upgradeable, ERC721EnumerableUpgradeable)
-    whenNotPaused
+        internal
+        override(ERC721Upgradeable, ERC721EnumerableUpgradeable)
+        whenNotPaused
     {
         super._beforeTokenTransfer(from, to, tokenId, batchSize);
     }
 
     function supportsInterface(bytes4 interfaceId)
-    public
-    view
-    virtual
-    override(
-    ERC721Upgradeable,
-    ERC721EnumerableUpgradeable,
-    ERC721RoyaltyUpgradeable
-    )
-    returns (bool)
+        public
+        view
+        virtual
+        override(
+            ERC721Upgradeable,
+            ERC721EnumerableUpgradeable,
+            ERC721RoyaltyUpgradeable
+        )
+        returns (bool)
     {
         return super.supportsInterface(interfaceId);
     }
 
     function _burn(uint256 tokenId)
-    internal
-    virtual
-    override(ERC721Upgradeable, ERC721RoyaltyUpgradeable)
+        internal
+        virtual
+        override(ERC721Upgradeable, ERC721RoyaltyUpgradeable)
     {
         return super._burn(tokenId);
     }
 
     function tokenURI(uint256 tokenId)
-    public
-    view
-    virtual
-    override
-    returns (string memory)
+        public
+        view
+        virtual
+        override
+        returns (string memory)
     {
         return tokenIdToUri[tokenId];
     }
@@ -212,10 +220,26 @@ ERC721RoyaltyUpgradeable
         for (uint256 i = 0; i < _tokenIdCounter.current(); i++) {
             //        调整所有的meme的版税
             address splitterAddress;
-            (splitterAddress,) = super.royaltyInfo(i, 0);
+            (splitterAddress, ) = super.royaltyInfo(i, 0);
             IPaySplitter splitter = IPaySplitter(splitterAddress);
             splitter.deletePayee(brandContract.owner());
             splitter.addPayee(newBrandOwner, 500);
         }
+    }
+
+    function updateContractUri(string memory _contractUri)
+        public
+        onlyOwner
+        whenNotPaused
+    {
+        contractURI = _contractUri;
+    }
+
+    function updateTokenUri(string memory _tokenUri, uint256 tokenId)
+        public
+        onlyOwner
+        whenNotPaused
+    {
+        tokenIdToUri[tokenId] = _tokenUri;
     }
 }

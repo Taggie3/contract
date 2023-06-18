@@ -405,11 +405,6 @@
     "@ethersproject/properties" "^5.7.0"
     "@ethersproject/strings" "^5.7.0"
 
-"@extra-math/erf@^1.1.18":
-  "integrity" "sha512-Gc4KsBiVm4oDl2oo5+v/o7yi6U0XffNl/b3k+svfyH4mxvXzJ54mLZsEs18vJXtN78DjkLHqNmqCgkrEvwVO3g=="
-  "resolved" "https://registry.npmjs.org/@extra-math/erf/-/erf-1.1.18.tgz"
-  "version" "1.1.18"
-
 "@humanwhocodes/config-array@^0.10.4":
   "integrity" "sha512-MDl6D6sBsaV452/QSdX+4CXIjZhIcI0PELsxUjk4U828yd58vk3bTIvk/6w5FY+4hIy9sLW0sfrV7K7Kc++j/w=="
   "resolved" "https://registry.npmjs.org/@humanwhocodes/config-array/-/config-array-0.10.7.tgz"
@@ -1682,9 +1677,9 @@
   dependencies:
     "check-error" "^1.0.2"
 
-"chai@^4.2.0", "chai@>= 2.1.2 < 5":
+"chai@^4.2.0", "chai@^4.3.7", "chai@>= 2.1.2 < 5":
   "integrity" "sha512-HLnAzZ2iupm25PlN0xFreAlBA5zaBSv3og0DdeGA4Ar6h6rJ3A0rolRUKJhSF2V10GZKDgWF/VmAEsNWjCRB+A=="
-  "resolved" "https://registry.npmjs.org/chai/-/chai-4.3.7.tgz"
+  "resolved" "https://registry.npmmirror.com/chai/-/chai-4.3.7.tgz"
   "version" "4.3.7"
   dependencies:
     "assertion-error" "^1.1.0"
