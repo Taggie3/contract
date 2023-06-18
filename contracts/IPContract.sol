@@ -71,8 +71,7 @@ contract IPContract is
 
     function mint(
         address creator,
-        string memory MemeUri,
-        uint256 memeId
+        string memory MemeUri
     ) public whenNotPaused onlyOwner {
         //更新tokenId
         uint256 tokenId = _tokenIdCounter.current();
@@ -80,7 +79,6 @@ contract IPContract is
 
         emit NewMemeEvent(
             tokenId,
-            memeId,
             address(this),
             address(brandContract),
             creator
@@ -112,7 +110,6 @@ contract IPContract is
     // events
     event NewMemeEvent(
         uint256 tokenId,
-        uint256 memeId,
         address ipAddress,
         address brandAddress,
         address memeOwner
