@@ -73,12 +73,6 @@
       },
       {
         "indexed": false,
-        "internalType": "uint256",
-        "name": "memeId",
-        "type": "uint256"
-      },
-      {
-        "indexed": false,
         "internalType": "address",
         "name": "ipAddress",
         "type": "address"
@@ -368,11 +362,6 @@
         "internalType": "string",
         "name": "MemeUri",
         "type": "string"
-      },
-      {
-        "internalType": "uint256",
-        "name": "memeId",
-        "type": "uint256"
       }
     ],
     "name": "mint",
@@ -597,6 +586,25 @@
   {
     "inputs": [
       {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "name": "tokenIdToUri",
+    "outputs": [
+      {
+        "internalType": "string",
+        "name": "",
+        "type": "string"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
         "internalType": "address",
         "name": "owner",
         "type": "address"
@@ -716,11 +724,42 @@
     "inputs": [
       {
         "internalType": "string",
+        "name": "_contractUri",
+        "type": "string"
+      }
+    ],
+    "name": "updateContractUri",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "string",
         "name": "_logo",
         "type": "string"
       }
     ],
     "name": "updateLogo",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "string",
+        "name": "_tokenUri",
+        "type": "string"
+      },
+      {
+        "internalType": "uint256",
+        "name": "tokenId",
+        "type": "uint256"
+      }
+    ],
+    "name": "updateTokenUri",
     "outputs": [],
     "stateMutability": "nonpayable",
     "type": "function"
