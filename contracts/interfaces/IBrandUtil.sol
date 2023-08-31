@@ -2,10 +2,19 @@
 pragma solidity ^0.8.12;
 
 import "./IPaySplitter.sol";
+import "./IERC6551Registry.sol";
+import "./IERC6551Account.sol";
 
 interface IBrandUtil {
 
     function getBrand3Admin() external view returns (address);
+
+    function getERC6551Registry() external view returns (
+        IERC6551Registry erc6551Registry,
+        IERC6551Account erc6551Account,
+        uint256 chainId,
+        uint256 salt
+    );
 
     function buildSplitter(address[] memory payees, uint256[] memory shares, address owner)
     external

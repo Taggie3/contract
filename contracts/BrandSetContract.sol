@@ -8,7 +8,6 @@ import "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/token/ERC721/extensions/ERC721BurnableUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/utils/CountersUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/token/ERC721/extensions/ERC721RoyaltyUpgradeable.sol";
-import "@openzeppelin/contracts/finance/PaymentSplitter.sol";
 import "./TagContract.sol";
 import "./interfaces/IBrandContract.sol";
 import "./interfaces/IPaySplitter.sol";
@@ -113,40 +112,39 @@ ERC721RoyaltyUpgradeable
             );
         }
 
-        emit NewBrandEvent(
-            tokenId,
-            brandName,
-            address(brandContract),
-            msg.sender
-        );
+//        emit NewBrandEvent(
+//            tokenId,
+//            brandName,
+//            address(brandContract),
+//            msg.sender
+//        );
         tokenIdToUri[tokenId] = brandUri;
 
         Brand memory newBrand = Brand(brandName, brandSymbol, brandContract);
         brands.push(newBrand);
         tokenIdToBrand[tokenId] = newBrand;
         _safeMint(msg.sender, tokenId);
+        // 获取nft对应的TBA
+        (
+            IERC6551Registry erc6551Registry,
+            IERC6551Account erc6551Account,
+            uint256 chainId,
+            uint256 salt
+        ) = brandUtil.getERC6551Registry();
+        address brandAccount = erc6551Registry.createAccount(address(erc6551Account), chainId, address(this), tokenId, salt, abi.encodePacked(uint256(0)));
+        // 修改brand的owner
+        brandContract.transferOwnership(brandAccount);
     }
 
-    event NewBrandEvent(
-        uint256 tokenId,
-        string brandName,
-        address brandContractAddress,
-        address brandOwner
-    );
+//    event NewBrandEvent(
+//        uint256 tokenId,
+//        string brandName,
+//        address brandContractAddress,
+//        address brandOwner
+//    );
 
     function listBrand() external view returns (Brand[] memory) {
         return brands;
-    }
-
-    function _afterTokenTransfer(
-        address from,
-        address to,
-        uint256 firstTokenId,
-        uint256 batchSize
-    ) internal virtual override(ERC721Upgradeable) {
-        IBrandContract brandContract = tokenIdToBrand[firstTokenId]
-        .brandContract;
-        brandContract.transferOwnership(to);
     }
 
     /**
@@ -155,7 +153,7 @@ ERC721RoyaltyUpgradeable
     function withdraw() public onlyOwner {
         address _owner = owner();
         uint256 amount = address(this).balance;
-        (bool sent,) = _owner.call{value : amount}("");
+        (bool sent,) = _owner.call{value: amount}("");
         require(sent, "Failed to send Ether");
     }
 

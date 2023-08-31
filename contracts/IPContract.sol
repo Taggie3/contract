@@ -15,12 +15,12 @@ import "./interfaces/IPaySplitter.sol";
 import "./interfaces/IBrandUtil.sol";
 
 contract IPContract is
-    ERC721Upgradeable,
-    ERC721EnumerableUpgradeable,
-    PausableUpgradeable,
-    OwnableUpgradeable,
-    ERC721BurnableUpgradeable,
-    ERC721RoyaltyUpgradeable
+ERC721Upgradeable,
+ERC721EnumerableUpgradeable,
+PausableUpgradeable,
+OwnableUpgradeable,
+ERC721BurnableUpgradeable,
+ERC721RoyaltyUpgradeable
 {
     using CountersUpgradeable for CountersUpgradeable.Counter;
     CountersUpgradeable.Counter private _tokenIdCounter;
@@ -37,7 +37,6 @@ contract IPContract is
         string memory _symbol,
         string memory _logo,
         IBrandContract _brandContract,
-        address _creatorAddress,
         string memory _contractURI,
         IBrandUtil _brandUtil
     ) public initializer {
@@ -47,14 +46,13 @@ contract IPContract is
         contractURI = _contractURI;
         brandUtil = _brandUtil;
 
-        _transferOwnership(_creatorAddress);
+        _transferOwnership(address(_brandContract));
         // 配置默认版税
-        // 配置默认版权分账
         address[] memory payees = new address[](3);
         uint256[] memory shares = new uint256[](3);
         payees[0] = brandContract.owner();
         shares[0] = 500;
-        payees[1] = owner();
+        payees[1] = brandUtil.getBrand3Admin();
         shares[1] = 1000;
         payees[2] = brandUtil.getBrand3Admin();
         shares[2] = 100;
@@ -120,18 +118,18 @@ contract IPContract is
     }
 
     function updateBrandContract(IBrandContract _brandContract)
-        public
-        onlyOwner
-        whenNotPaused
+    public
+    onlyOwner
+    whenNotPaused
     {
         brandContract = _brandContract;
     }
 
     function transferOwnership(address newOwner)
-        public
-        virtual
-        override
-        onlyBrand
+    public
+    virtual
+    override
+    onlyBrand
     {
         require(
             newOwner != address(0),
@@ -140,7 +138,7 @@ contract IPContract is
         for (uint256 i = 0; i < _tokenIdCounter.current(); i++) {
             //        调整所有的meme的版税
             address splitterAddress;
-            (splitterAddress, ) = super.royaltyInfo(i, 0);
+            (splitterAddress,) = super.royaltyInfo(i, 0);
             IPaySplitter splitter = IPaySplitter(splitterAddress);
             splitter.deletePayee(owner());
             splitter.addPayee(newOwner, 500);
@@ -155,41 +153,41 @@ contract IPContract is
         uint256 tokenId,
         uint256 batchSize
     )
-        internal
-        override(ERC721Upgradeable, ERC721EnumerableUpgradeable)
-        whenNotPaused
+    internal
+    override(ERC721Upgradeable, ERC721EnumerableUpgradeable)
+    whenNotPaused
     {
         super._beforeTokenTransfer(from, to, tokenId, batchSize);
     }
 
     function supportsInterface(bytes4 interfaceId)
-        public
-        view
-        virtual
-        override(
-            ERC721Upgradeable,
-            ERC721EnumerableUpgradeable,
-            ERC721RoyaltyUpgradeable
-        )
-        returns (bool)
+    public
+    view
+    virtual
+    override(
+    ERC721Upgradeable,
+    ERC721EnumerableUpgradeable,
+    ERC721RoyaltyUpgradeable
+    )
+    returns (bool)
     {
         return super.supportsInterface(interfaceId);
     }
 
     function _burn(uint256 tokenId)
-        internal
-        virtual
-        override(ERC721Upgradeable, ERC721RoyaltyUpgradeable)
+    internal
+    virtual
+    override(ERC721Upgradeable, ERC721RoyaltyUpgradeable)
     {
         return super._burn(tokenId);
     }
 
     function tokenURI(uint256 tokenId)
-        public
-        view
-        virtual
-        override
-        returns (string memory)
+    public
+    view
+    virtual
+    override
+    returns (string memory)
     {
         return tokenIdToUri[tokenId];
     }
@@ -217,7 +215,7 @@ contract IPContract is
         for (uint256 i = 0; i < _tokenIdCounter.current(); i++) {
             //        调整所有的meme的版税
             address splitterAddress;
-            (splitterAddress, ) = super.royaltyInfo(i, 0);
+            (splitterAddress,) = super.royaltyInfo(i, 0);
             IPaySplitter splitter = IPaySplitter(splitterAddress);
             splitter.deletePayee(brandContract.owner());
             splitter.addPayee(newBrandOwner, 500);
@@ -225,17 +223,17 @@ contract IPContract is
     }
 
     function updateContractUri(string memory _contractUri)
-        public
-        onlyOwner
-        whenNotPaused
+    public
+    onlyOwner
+    whenNotPaused
     {
         contractURI = _contractUri;
     }
 
     function updateTokenUri(string memory _tokenUri, uint256 tokenId)
-        public
-        onlyOwner
-        whenNotPaused
+    public
+    onlyOwner
+    whenNotPaused
     {
         tokenIdToUri[tokenId] = _tokenUri;
     }

@@ -6,13 +6,21 @@ import "@openzeppelin/contracts-upgradeable/utils/cryptography/SignatureCheckerU
 import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import "./interfaces/IBrandUtil.sol";
 import "./PaySplitter.sol";
+import "./interfaces/IERC6551Registry.sol";
+import "./interfaces/IERC6551Account.sol";
 
 contract BrandUtil is Initializable, IBrandUtil {
     address public brand3Admin;
+    IERC6551Registry public erc6551Registry;
+    IERC6551Account public erc6551Account;
+    uint256 public chainId;
+    uint256 public salt;
     PaySplitter[] public splitters;
 
-    function initialize() public initializer {
+    function initialize(IERC6551Registry _erc6551Registry) public initializer {
         brand3Admin = msg.sender;
+        erc6551Registry = _erc6551Registry;
+
     }
 
     function setBrand3Admin(address newBrand3Admin) public {
@@ -28,11 +36,20 @@ contract BrandUtil is Initializable, IBrandUtil {
         return brand3Admin;
     }
 
+    function getERC6551Registry() public view returns (
+        IERC6551Registry _erc6551Registry,
+        IERC6551Account _erc6551Account,
+        uint256 _chainId,
+        uint256 _salt
+    ){
+        return (erc6551Registry, erc6551Account, chainId, salt);
+    }
+
     function buildSplitter(address[] memory payees, uint256[] memory shares, address owner)
     public
     returns (IPaySplitter paySplitter)
     {
-        // 配置默认版权分账
+// 配置默认版权分账
         PaySplitter newPaySplitter = new PaySplitter(payees, shares, owner);
         splitters.push(newPaySplitter);
         return newPaySplitter;
@@ -62,7 +79,7 @@ contract BrandUtil is Initializable, IBrandUtil {
     ) public view returns (bool) {
         bytes32 messageHash = getMessageHash(message);
         return
-        SignatureCheckerUpgradeable.isValidSignatureNow(
+            SignatureCheckerUpgradeable.isValidSignatureNow(
             signer,
             messageHash,
             signature
