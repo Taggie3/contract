@@ -17,10 +17,16 @@ contract BrandUtil is Initializable, IBrandUtil {
     uint256 public salt;
     PaySplitter[] public splitters;
 
-    function initialize(IERC6551Registry _erc6551Registry) public initializer {
+    function initialize(IERC6551Registry _erc6551Registry,
+        IERC6551Account _erc6551Account,
+        uint256 _chainId,
+        uint256 _salt
+    ) public initializer {
         brand3Admin = msg.sender;
         erc6551Registry = _erc6551Registry;
-
+        erc6551Account = _erc6551Account;
+        chainId = _chainId;
+        salt = _salt;
     }
 
     function setBrand3Admin(address newBrand3Admin) public {

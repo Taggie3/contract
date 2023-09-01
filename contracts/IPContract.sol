@@ -46,7 +46,9 @@ ERC721RoyaltyUpgradeable
         contractURI = _contractURI;
         brandUtil = _brandUtil;
 
-        _transferOwnership(address(_brandContract));
+        // _transferOwnership(address(_brandContract));
+        // TODO 调试完改回来
+        _transferOwnership(tx.origin);
         // 配置默认版税
         address[] memory payees = new address[](3);
         uint256[] memory shares = new uint256[](3);
@@ -75,12 +77,12 @@ ERC721RoyaltyUpgradeable
         uint256 tokenId = _tokenIdCounter.current();
         _tokenIdCounter.increment();
 
-        emit NewMemeEvent(
-            tokenId,
-            address(this),
-            address(brandContract),
-            creator
-        );
+//        emit NewMemeEvent(
+//            tokenId,
+//            address(this),
+//            address(brandContract),
+//            creator
+//        );
 
         tokenIdToUri[tokenId] = MemeUri;
         _safeMint(creator, tokenId);
@@ -106,12 +108,12 @@ ERC721RoyaltyUpgradeable
     }
 
     // events
-    event NewMemeEvent(
-        uint256 tokenId,
-        address ipAddress,
-        address brandAddress,
-        address memeOwner
-    );
+//    event NewMemeEvent(
+//        uint256 tokenId,
+//        address ipAddress,
+//        address brandAddress,
+//        address memeOwner
+//    );
 
     function updateLogo(string memory _logo) public onlyOwner whenNotPaused {
         logo = _logo;
@@ -129,7 +131,7 @@ ERC721RoyaltyUpgradeable
     public
     virtual
     override
-    onlyBrand
+    onlyOwner
     {
         require(
             newOwner != address(0),

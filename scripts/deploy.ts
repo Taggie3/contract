@@ -26,8 +26,12 @@ async function main() {
         TagContract: '',
     };
 
+    const registerAddress = "0x02101dfB77FDE026414827Fdc604ddAF224F0921";
+    const accountImplement = "0x2d25602551487c3f3354dd80d76d54383a243358";
+    const chainId = 80001;
+    const salt = 3;
     const BrandUtil = await ethers.getContractFactory('BrandUtil');
-    const brandUtil = await upgrades.deployProxy(BrandUtil);
+    const brandUtil = await upgrades.deployProxy(BrandUtil, [registerAddress, accountImplement, chainId, salt]);
     await brandUtil.deployed();
     console.log("brandUtil deployed to:", brandUtil.address);
     const brandUtilAddress = brandUtil.address;
@@ -72,11 +76,11 @@ async function main() {
     const ipName = 'IPName';
     const ipSymbol = 'IPSymbol';
     const ipLogo = 'IPLogo';
-    const creator = '0xC8D64fdCA7DE05204b19cA62151fC4cd50Bcd106';
+    // const creator = '0xC8D64fdCA7DE05204b19cA62151fC4cd50Bcd106';
     const ipContractUri = SERVER_HOST + '/metadata/contract/ip/1';
     const IPContract = await ethers.getContractFactory('IPContract');
     const ipContract = await upgrades.deployProxy(IPContract,
-        [ipName, ipSymbol, ipLogo, brandAddress, creator, ipContractUri, brandUtilAddress]);
+        [ipName, ipSymbol, ipLogo, brandAddress, ipContractUri, brandUtilAddress]);
     await ipContract.deployed();
     console.log("ipContract deployed to:", ipContract.address);
 
