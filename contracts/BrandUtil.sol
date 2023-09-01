@@ -12,25 +12,27 @@ import "./interfaces/IERC6551Account.sol";
 contract BrandUtil is Initializable, IBrandUtil {
     address public brand3Admin;
     IERC6551Registry public erc6551Registry;
-    IERC6551Account public erc6551Account;
+    address public erc6551AccountImplementation;
     uint256 public chainId;
-    uint256 public salt;
+    uint256 public salt = 0;
     PaySplitter[] public splitters;
 
-    function initialize(IERC6551Registry _erc6551Registry,
-        IERC6551Account _erc6551Account,
-        uint256 _chainId,
-        uint256 _salt
+    function initialize(
+        IERC6551Registry _erc6551Registry,
+        address _erc6551AccountImplementation,
+        uint256 _chainId
     ) public initializer {
         brand3Admin = msg.sender;
         erc6551Registry = _erc6551Registry;
-        erc6551Account = _erc6551Account;
+        erc6551AccountImplementation = _erc6551AccountImplementation;
         chainId = _chainId;
-        salt = _salt;
     }
 
     function setBrand3Admin(address newBrand3Admin) public {
-        require(msg.sender == brand3Admin, "BrandUtil: Only brand3Admin can set brand3Admin");
+        require(
+            msg.sender == brand3Admin,
+            "BrandUtil: Only brand3Admin can set brand3Admin"
+        );
         for (uint256 i = 0; i < splitters.length; i++) {
             splitters[i].deletePayee(brand3Admin);
             splitters[i].addPayee(newBrand3Admin, 100);
@@ -42,19 +44,67 @@ contract BrandUtil is Initializable, IBrandUtil {
         return brand3Admin;
     }
 
-    function getERC6551Registry() public view returns (
-        IERC6551Registry _erc6551Registry,
-        IERC6551Account _erc6551Account,
-        uint256 _chainId,
-        uint256 _salt
-    ){
-        return (erc6551Registry, erc6551Account, chainId, salt);
+    function getERC6551Registry()
+        public
+        view
+        returns (
+            IERC6551Registry _erc6551Registry,
+            address _erc6551AccountImplementation,
+            uint256 _chainId,
+            uint256 _salt
+        )
+    {
+        return (erc6551Registry, erc6551AccountImplementation, chainId, salt);
     }
 
-    function buildSplitter(address[] memory payees, uint256[] memory shares, address owner)
-    public
-    returns (IPaySplitter paySplitter)
+    function checkTokenBoundAccount(
+        address signer,
+        address nftAddress,
+        uint256 tokenId
+    ) public view returns (bool) {
+        // 检查授权
+        address erc6551AccountAddress = erc6551Registry.account(
+            erc6551AccountImplementation,
+            chainId,
+            nftAddress,
+            tokenId,
+            salt
+        );
+        IERC6551Account erc6551Account = IERC6551Account(
+            payable(erc6551AccountAddress)
+        );
+        bytes4 magicValue = erc6551Account.isValidSigner(
+            signer,
+            abi.encodePacked(uint256(0))
+        );
+        //        魔法值不能为0
+        return magicValue != bytes4(0);
+    }
+
+    /*
+    创建TokenBoundAccount
+    */
+    function createTokenBoundAccount(address nftAddress, uint256 tokenId)
+        public
+        returns (address)
     {
+        // 检查授权
+        return
+            erc6551Registry.createAccount(
+                erc6551AccountImplementation,
+                chainId,
+                nftAddress,
+                tokenId,
+                salt,
+                abi.encodePacked(uint256(0))
+            );
+    }
+
+    function buildSplitter(
+        address[] memory payees,
+        uint256[] memory shares,
+        address owner
+    ) public returns (IPaySplitter paySplitter) {
         // 配置默认版权分账
         PaySplitter newPaySplitter = new PaySplitter(payees, shares, owner);
         splitters.push(newPaySplitter);
@@ -62,9 +112,9 @@ contract BrandUtil is Initializable, IBrandUtil {
     }
 
     function getMessageHash(string memory message)
-    public
-    pure
-    returns (bytes32)
+        public
+        pure
+        returns (bytes32)
     {
         bytes32 messageHash = keccak256(
             abi.encodePacked(
@@ -73,7 +123,6 @@ contract BrandUtil is Initializable, IBrandUtil {
                 bytes(message)
             )
         );
-
 
         return messageHash;
     }
@@ -86,9 +135,9 @@ contract BrandUtil is Initializable, IBrandUtil {
         bytes32 messageHash = getMessageHash(message);
         return
             SignatureCheckerUpgradeable.isValidSignatureNow(
-            signer,
-            messageHash,
-            signature
-        );
+                signer,
+                messageHash,
+                signature
+            );
     }
 }

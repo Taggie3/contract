@@ -41,6 +41,7 @@ ERC721RoyaltyUpgradeable
     string public contractURI;
 
     IBrandUtil public brandUtil;
+    uint256 public brandSetId;
 
     function initialize(
         string memory _name,
@@ -87,13 +88,17 @@ ERC721RoyaltyUpgradeable
     function mint(string memory ipUri, IIPContract _ipContract)
     public
     whenNotPaused
-    onlyOwner
     {
         // 检查ip合约
         require(
             address(this) == _ipContract.brandContract(),
             "brandContractAddress error"
         );
+        // 检查授权
+        bool isValid = brandUtil.checkTokenBoundAccount(msg.sender, brandSetAddress, brandSetId);
+        //        魔法值不能为0
+        require(isValid, "invalid signer");
+
 
         string memory ipName = _ipContract.name();
         string memory ipSymbol = _ipContract.symbol();
@@ -130,14 +135,8 @@ ERC721RoyaltyUpgradeable
         tokenIdToIP[tokenId] = newIP;
         tokenIdToUri[tokenId] = ipUri;
         _safeMint(ipOwner, tokenId);
-        // 获取nft对应的TBA
-        (
-            IERC6551Registry erc6551Registry,
-            IERC6551Account erc6551Account,
-            uint256 chainId,
-            uint256 salt
-        ) = brandUtil.getERC6551Registry();
-        address ipAccount = erc6551Registry.createAccount(address(erc6551Account), chainId, address(this), tokenId, salt, abi.encodePacked(uint256(0)));
+
+        address ipAccount = brandUtil.createTokenBoundAccount(address(this), tokenId);
 
         //   nft交易版税5%给owner，5%给creator，1%给平台.通过splitter处理
         address[] memory payees = new address[](3);
@@ -156,6 +155,7 @@ ERC721RoyaltyUpgradeable
         );
         address splitterAddress = address(paySplitter);
         _setTokenRoyalty(tokenId, splitterAddress, 1100);
+        _ipContract.updateBrandId(tokenId);
         _ipContract.transferOwnership(ipAccount);
     }
 
@@ -299,6 +299,10 @@ ERC721RoyaltyUpgradeable
     whenNotPaused
     {
         tokenIdToUri[tokenId] = _tokenUri;
+    }
+
+    function updateBrandSetId(uint256 _brandSetId) public onlyOwner initializer {
+        brandSetId = _brandSetId;
     }
 }
 

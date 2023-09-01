@@ -13,4 +13,6 @@ interface IIPContract {
     function transferOwnership(address newOwner) external;
 
     function updateBrandOwner(address newBrandOwner) external;
+
+    function updateBrandId(uint256 _brandId) external;
 }

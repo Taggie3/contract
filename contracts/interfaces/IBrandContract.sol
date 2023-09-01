@@ -15,4 +15,6 @@ interface IBrandContract {
     function listTags() external view returns (TagContract.Tag[] memory);
 
     function transferOwnership(address newOwner) external;
+
+    function updateBrandSetId(uint256 _brandSetId) external;
 }

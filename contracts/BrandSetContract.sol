@@ -75,19 +75,18 @@ ERC721RoyaltyUpgradeable
         bytes memory signature,
         IBrandContract _brandContract
     ) public whenNotPaused {
-        IBrandContract brandContract = _brandContract;
         //更新tokenId
 
         uint256 tokenId = _tokenIdCounter.current();
         _tokenIdCounter.increment();
 
         require(
-            address(this) == brandContract.brandSetAddress(),
+            address(this) == _brandContract.brandSetAddress(),
             "brandSetAddress error"
         );
 
-        string memory brandName = brandContract.name();
-        string memory brandSymbol = brandContract.symbol();
+        string memory brandName = _brandContract.name();
+        string memory brandSymbol = _brandContract.symbol();
 
         require(
             brandUtil.checkValidSignature(signature, brandName, this.owner()),
@@ -102,7 +101,7 @@ ERC721RoyaltyUpgradeable
             );
         }
         //    检查tag是否合法
-        TagContract.Tag[] memory tags = brandContract.listTags();
+        TagContract.Tag[] memory tags = _brandContract.listTags();
         for (uint256 i = 0; i < tags.length; i++) {
             TagContract.Tag memory tag = tags[i];
             TagContract.Tag memory existTag = tagContract.getTag(tag.tokenId);
@@ -120,20 +119,15 @@ ERC721RoyaltyUpgradeable
 //        );
         tokenIdToUri[tokenId] = brandUri;
 
-        Brand memory newBrand = Brand(brandName, brandSymbol, brandContract);
+        Brand memory newBrand = Brand(brandName, brandSymbol, _brandContract);
         brands.push(newBrand);
         tokenIdToBrand[tokenId] = newBrand;
         _safeMint(msg.sender, tokenId);
         // 获取nft对应的TBA
-        (
-            IERC6551Registry erc6551Registry,
-            IERC6551Account erc6551Account,
-            uint256 chainId,
-            uint256 salt
-        ) = brandUtil.getERC6551Registry();
-        address brandAccount = erc6551Registry.createAccount(address(erc6551Account), chainId, address(this), tokenId, salt, abi.encodePacked(uint256(0)));
+        address brandAccount = brandUtil.createTokenBoundAccount(address(this), tokenId);
         // 修改brand的owner
-        brandContract.transferOwnership(brandAccount);
+        _brandContract.updateBrandSetId(tokenId);
+        _brandContract.transferOwnership(brandAccount);
     }
 
 //    event NewBrandEvent(

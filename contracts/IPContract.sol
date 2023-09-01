@@ -31,6 +31,7 @@ ERC721RoyaltyUpgradeable
 
     string public contractURI;
     IBrandUtil public brandUtil;
+    uint256 public brandId;
 
     function initialize(
         string memory _name,
@@ -46,9 +47,9 @@ ERC721RoyaltyUpgradeable
         contractURI = _contractURI;
         brandUtil = _brandUtil;
 
-        // _transferOwnership(address(_brandContract));
+        _transferOwnership(address(_brandContract));
         // TODO 调试完改回来
-        _transferOwnership(tx.origin);
+        // _transferOwnership(tx.origin);
         // 配置默认版税
         address[] memory payees = new address[](3);
         uint256[] memory shares = new uint256[](3);
@@ -72,7 +73,12 @@ ERC721RoyaltyUpgradeable
     function mint(
         address creator,
         string memory MemeUri
-    ) public whenNotPaused onlyOwner {
+    ) public whenNotPaused {
+        // 检查授权
+        bool isValid = brandUtil.checkTokenBoundAccount(msg.sender, address(brandContract), brandId);
+        //        魔法值不能为0
+        require(isValid, "invalid signer");
+
         //更新tokenId
         uint256 tokenId = _tokenIdCounter.current();
         _tokenIdCounter.increment();
@@ -222,6 +228,10 @@ ERC721RoyaltyUpgradeable
             splitter.deletePayee(brandContract.owner());
             splitter.addPayee(newBrandOwner, 500);
         }
+    }
+
+    function updateBrandId(uint256 _brandId) public onlyOwner initializer {
+        brandId = _brandId;
     }
 
     function updateContractUri(string memory _contractUri)
