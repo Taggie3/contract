@@ -6,7 +6,7 @@
 
 ## 如何新增Brand
 
-![img_3.png](img_3.png)
+![img_1.png](img_1.png)
 
 ## 如何新增IP
 

@@ -18,9 +18,9 @@ admin --> backend: 调用afterInitialize接口并更新tokenUri信息
 admin --> brandContract: mint一个ip
 brandContract --> brandContract: 检查ip合约是否符合要求
 brandContract --> brandContract: 记录新增ip数据
-brandContract --> brandContract: 抛出NewIPEvent
+'brandContract --> brandContract: 抛出NewIPEvent
 brandContract --> brandContract: 执行transfer并抛出TransferEvent
-alchemy --> brandSetContract:监听到TransferEvent
+alchemy --> brandContract:监听到TransferEvent
 alchemy --> backend: 通知新创建了IP
 backend --> backend: 更新数据库中的IP数据
 

@@ -17,7 +17,7 @@ applicant --> backend: 调用afterInitialize接口并更新tokenUri信息
 applicant --> brandSetContract: mint一个brand
 brandSetContract --> brandSetContract: 检查brand合约是否符合要求
 brandSetContract --> brandSetContract: 将新生成的brand合约信息记录
-brandSetContract --> brandSetContract: 抛出NewBrandEvent
+'brandSetContract --> brandSetContract: 抛出NewBrandEvent
 brandSetContract --> brandSetContract: 执行transfer并抛出TransferEvent
 alchemy --> brandSetContract:监听到TransferEvent
 alchemy --> backend: 通知新创建了brand

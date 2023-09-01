@@ -294,11 +294,6 @@
         "type": "address"
       },
       {
-        "internalType": "address",
-        "name": "_creatorAddress",
-        "type": "address"
-      },
-      {
         "internalType": "string",
         "name": "_contractURI",
         "type": "string"
