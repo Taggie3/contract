@@ -49,7 +49,7 @@ contract BrandUtil is Initializable, IBrandUtil {
     public
     returns (IPaySplitter paySplitter)
     {
-// 配置默认版权分账
+        // 配置默认版权分账
         PaySplitter newPaySplitter = new PaySplitter(payees, shares, owner);
         splitters.push(newPaySplitter);
         return newPaySplitter;
